@@ -1,0 +1,1964 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>FitMate (Khỏe Cùng Bạn) – User Mobile App · PT Mobile App · Admin Web</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Responsive Mobile Shell:
+       - On small screens (< 640px): takes 100% viewport width & height like a real native app
+       - On tablet/desktop (>= 640px): renders inside a sleek 412x840 mobile device bezel */
+    @media (min-width: 640px) {
+      .mobile-device-shell {
+        width: 412px;
+        height: 830px;
+        border-radius: 44px;
+        border: 10px solid #1e293b;
+        box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.35);
+      }
+    }
+    @media (max-width: 639px) {
+      .mobile-device-shell {
+        width: 100%;
+        min-height: calc(100vh - 64px);
+        border-radius: 0px;
+        border: none;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 antialiased min-h-screen flex flex-col">
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast-container" class="fixed top-16 right-4 z-50 flex flex-col gap-2 max-w-xs sm:max-w-sm pointer-events-none"></div>
+
+  <!-- TOP SYSTEM SWITCHER BAR (Responsive across Mobile & Desktop) -->
+  <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-md">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2">
+      
+      <!-- Brand -->
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-emerald-500 text-slate-950 font-black text-sm flex items-center justify-center shrink-0">
+          FM
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-sm sm:text-base tracking-tight">FitMate (Khỏe Cùng Bạn)</span>
+            <span class="hidden md:inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              Bảng 5.6: 2 Mobile Apps + 1 Admin Web
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 Platform Switcher Buttons -->
+      <div class="flex items-center gap-1 bg-slate-800 p-1 rounded-xl border border-slate-700 w-full sm:w-auto justify-between sm:justify-start">
+        <button id="role-btn-user" onclick="switchRole('user')" class="flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950 shadow transition flex items-center justify-center gap-1.5">
+          <span>📱 User App</span>
+          <span class="hidden md:inline text-xs opacity-80">(Mobile)</span>
+        </button>
+        <button id="role-btn-pt" onclick="switchRole('pt')" class="flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition flex items-center justify-center gap-1.5">
+          <span>📲 PT App</span>
+          <span class="hidden md:inline text-xs opacity-75">(Mobile)</span>
+        </button>
+        <button id="role-btn-admin" onclick="switchRole('admin')" class="flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition flex items-center justify-center gap-1.5">
+          <span>💻 Admin Web</span>
+          <span class="hidden md:inline text-xs opacity-75">(Web Portal)</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- PHÂN HỆ 1: USER APP (NATIVE MOBILE APP - iOS / ANDROID)               -->
+  <!-- ===================================================================== -->
+  <main id="role-view-user" class="flex-1 max-w-7xl w-full mx-auto sm:px-6 sm:py-6 flex flex-col lg:flex-row items-center lg:items-start justify-center gap-6">
+    
+    <!-- CENTER: MOBILE PHONE SHELL FOR USER APP -->
+    <div class="mobile-device-shell bg-white flex flex-col justify-between overflow-hidden relative shrink-0">
+      
+      <!-- iOS / Android Status Bar + Dynamic Top App Bar -->
+      <div class="bg-white border-b border-slate-100 shrink-0">
+        <!-- OS Status bar -->
+        <div class="px-5 pt-2 pb-1 flex items-center justify-between text-xs font-bold text-slate-700">
+          <span id="user-os-clock">09:41</span>
+          <div class="hidden sm:block w-20 h-4 bg-slate-900 rounded-full"></div>
+          <div class="flex items-center gap-1.5 text-xs">
+            <button onclick="actionSwitchMobileOs()" id="user-os-badge" class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-bold hover:bg-slate-200" title="Bấm để đổi iOS HealthKit / Android Health Connect">
+              iOS · HealthKit
+            </button>
+            <span>📶</span>
+            <span>🔋</span>
+          </div>
+        </div>
+
+        <!-- App Header with Secondary Screen Pills (Profile, Plan, Privacy) -->
+        <div class="px-4 py-2 flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <button onclick="switchUserTab('onboarding')" class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center border border-emerald-300" title="Hồ sơ & Sàng lọc PAR-Q+">
+              MA
+            </button>
+            <div>
+              <p class="text-xs font-extrabold text-slate-900 leading-tight" id="user-app-header-title">Tổng quan Hôm nay</p>
+              <p class="text-xs text-emerald-600 font-semibold leading-tight" id="user-app-header-sub">🔥 14 ngày Streak · Giảm cân</p>
+            </div>
+          </div>
+
+          <!-- Top-right quick actions inside mobile app -->
+          <div class="flex items-center gap-1">
+            <button onclick="switchUserTab('onboarding')" id="top-pill-onboarding" class="px-2 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-emerald-50">
+              🩺 Hồ sơ
+            </button>
+            <button onclick="switchUserTab('privacy')" id="top-pill-privacy" class="px-2 py-1 rounded-lg text-xs font-semibold bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100">
+              🔒 Quyền
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCROLLABLE MOBILE SCREEN VIEWPORT -->
+      <div id="user-mobile-viewport" class="flex-1 overflow-y-auto no-scrollbar p-3.5 space-y-3.5 bg-slate-50">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <!-- NATIVE MOBILE BOTTOM TAB BAR (5 Primary Tabs) -->
+      <nav class="bg-white border-t border-slate-200 px-1 py-1.5 grid grid-cols-5 gap-0.5 shrink-0 select-none">
+        <button onclick="switchUserTab('dashboard')" id="u-bnav-dashboard" class="flex flex-col items-center justify-center py-1 rounded-xl text-emerald-600 font-bold">
+          <span class="text-base leading-none">🏠</span>
+          <span class="text-xs mt-1">Hôm nay</span>
+        </button>
+        <button onclick="switchUserTab('nutrition')" id="u-bnav-nutrition" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 font-medium">
+          <span class="text-base leading-none">🍜</span>
+          <span class="text-xs mt-1">Bữa ăn</span>
+        </button>
+        <button onclick="switchUserTab('plan')" id="u-bnav-plan" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 font-medium">
+          <span class="text-base leading-none">📅</span>
+          <span class="text-xs mt-1">Kế hoạch</span>
+        </button>
+        <button onclick="switchUserTab('rag')" id="u-bnav-rag" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 font-medium">
+          <span class="text-base leading-none">🤖</span>
+          <span class="text-xs mt-1">AI RAG</span>
+        </button>
+        <button onclick="switchUserTab('marketplace')" id="u-bnav-marketplace" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 font-medium">
+          <span class="text-base leading-none">🏋️</span>
+          <span class="text-xs mt-1">Thuê PT</span>
+        </button>
+      </nav>
+
+    </div>
+
+    <!-- SIDEBAR ON DESKTOP: QUICK JUMP TO ALL 8 FLOWS & SRS TRACEABILITY -->
+    <aside class="w-full lg:w-96 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-4 shrink-0">
+      <div class="border-b border-slate-200 pb-3">
+        <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">Bảng Điều khiển Kiểm thử Luồng Mobile</span>
+        <h3 class="text-sm font-bold text-slate-900 mt-0.5">Chuyển nhanh 8 màn hình của User App</h3>
+        <p class="text-xs text-slate-500 mt-0.5">Trên điện thoại thật chỉ hiện khung Mobile. Bảng phụ này giúp nhóm mở nhanh từng Use Case khi thuyết trình với giảng viên.</p>
+      </div>
+      <div id="user-flow-jumper" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-1.5"></div>
+      <div id="user-srs-context-box" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1.5"></div>
+    </aside>
+
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- PHÂN HỆ 2: PT APP (NATIVE MOBILE APP CHO HUẤN LUYỆN VIÊN FREELANCER)  -->
+  <!-- ===================================================================== -->
+  <main id="role-view-pt" class="hidden flex-1 max-w-7xl w-full mx-auto sm:px-6 sm:py-6 flex flex-col lg:flex-row items-center lg:items-start justify-center gap-6">
+    
+    <!-- CENTER: MOBILE PHONE SHELL FOR PT APP -->
+    <div class="mobile-device-shell bg-white flex flex-col justify-between overflow-hidden relative shrink-0">
+      
+      <!-- PT Mobile Status Bar & Top App Bar -->
+      <div class="bg-sky-950 text-white shrink-0">
+        <div class="px-5 pt-2 pb-1 flex items-center justify-between text-xs font-bold text-sky-200">
+          <span>09:41</span>
+          <div class="hidden sm:block w-20 h-4 bg-black rounded-full"></div>
+          <span>5G · 🔋 94%</span>
+        </div>
+        <div class="px-4 py-2.5 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-full bg-sky-500 text-white font-extrabold text-xs flex items-center justify-center">
+              HN
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <p class="text-xs font-extrabold leading-tight">HLV Trần Hoàng Nam</p>
+                <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-xs font-bold">✓ Đã xác minh</span>
+              </div>
+              <p class="text-xs text-sky-300 leading-tight" id="pt-app-header-sub">FitMate PT App · 12 Học viên đang kèm</p>
+            </div>
+          </div>
+          <button onclick="switchPtTab('profile')" class="px-2 py-1 rounded-lg bg-sky-900 border border-sky-700 text-xs font-semibold text-sky-100">
+            🎓 Hồ sơ
+          </button>
+        </div>
+      </div>
+
+      <!-- SCROLLABLE PT MOBILE VIEWPORT -->
+      <div id="pt-mobile-viewport" class="flex-1 overflow-y-auto no-scrollbar p-3.5 space-y-3.5 bg-slate-50">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <!-- NATIVE MOBILE BOTTOM TAB BAR FOR PT APP (5 Tabs) -->
+      <nav class="bg-white border-t border-slate-200 px-1 py-1.5 grid grid-cols-5 gap-0.5 shrink-0 select-none">
+        <button onclick="switchPtTab('students')" id="pt-bnav-students" class="flex flex-col items-center justify-center py-1 rounded-xl text-sky-600 font-bold">
+          <span class="text-base leading-none">👥</span>
+          <span class="text-xs mt-1">Học viên</span>
+        </button>
+        <button onclick="switchPtTab('schedule')" id="pt-bnav-schedule" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 font-medium">
+          <span class="text-base leading-none">📅</span>
+          <span class="text-xs mt-1">Lịch hẹn</span>
+        </button>
+        <button onclick="switchPtTab('chat')" id="pt-bnav-chat" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 font-medium">
+          <span class="text-base leading-none">💬</span>
+          <span class="text-xs mt-1">Chat &amp; AI</span>
+        </button>
+        <button onclick="switchPtTab('wallet')" id="pt-bnav-wallet" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 font-medium">
+          <span class="text-base leading-none">💰</span>
+          <span class="text-xs mt-1">Ví Escrow</span>
+        </button>
+        <button onclick="switchPtTab('profile')" id="pt-bnav-profile" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 font-medium">
+          <span class="text-base leading-none">🎓</span>
+          <span class="text-xs mt-1">Gói tập</span>
+        </button>
+      </nav>
+
+    </div>
+
+    <!-- SIDEBAR ON DESKTOP: PT APP FLOW JUMPER & PAIN POINT TRACEABILITY -->
+    <aside class="w-full lg:w-96 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-4 shrink-0">
+      <div class="border-b border-slate-200 pb-3">
+        <span class="text-xs font-bold uppercase tracking-wider text-sky-600">Phân hệ 2 · PT Mobile App (Bảng 5.6)</span>
+        <h3 class="text-sm font-bold text-slate-900 mt-0.5">Giải quyết nỗi đau của PT Freelancer (PV-PT01)</h3>
+        <p class="text-xs text-slate-500 mt-0.5">Giảm &ge; 30% thời gian nhắc học viên gửi ảnh bữa ăn qua Zalo và tự động hóa thu phí giữ tiền theo buổi (BO-3, SC-5).</p>
+      </div>
+      <div id="pt-flow-jumper" class="grid grid-cols-2 gap-1.5"></div>
+      <div class="p-3.5 rounded-xl bg-sky-50 border border-sky-200 text-xs space-y-1.5 text-slate-700">
+        <p class="font-bold text-sky-900">🔗 Kiểm chứng liên thông thực tế:</p>
+        <p>• Khi Học viên ở <b>User App</b> tắt quyền chia sẻ <i>Nhật ký bữa ăn</i> hoặc <i>Ảnh body</i>, màn hình <b>Học viên</b> của PT App sẽ khóa ngay dữ liệu đó.</p>
+        <p>• Khi Học viên bấm hoàn thành buổi tập, số dư trong tab <b>Ví Escrow</b> của PT App tự động tăng thêm <b>264.000đ</b> (đã trừ 12% hoa hồng).</p>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- PHÂN HỆ 3: ADMIN WEB (RESPONSIVE DESKTOP & MOBILE WEB PORTAL)         -->
+  <!-- ===================================================================== -->
+  <main id="role-view-admin" class="hidden flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 py-5">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      
+      <!-- Admin Web Left Sidebar (Responsive: horizontal scrollable pills on mobile, vertical sidebar on lg+) -->
+      <aside class="lg:col-span-3 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+        <div class="border-b border-slate-200 pb-2.5 flex items-center justify-between">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Phân hệ 3 · Admin Web</span>
+            <h2 class="text-sm font-bold text-slate-900 mt-0.5">Cổng Quản trị Vận hành</h2>
+          </div>
+          <span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 text-xs font-bold">FE-9 · REQ-15</span>
+        </div>
+
+        <nav id="admin-sidebar-nav" class="flex lg:flex-col gap-1.5 overflow-x-auto no-scrollbar pb-1 lg:pb-0"></nav>
+
+        <div class="hidden lg:block p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-1">
+          <p class="font-bold text-slate-800">👤 Quản trị viên trực:</p>
+          <p>Doãn Minh Hải (MSSV: 24021454)</p>
+          <p class="text-emerald-700 font-semibold">• 100% câu trả lời RAG có trích nguồn</p>
+          <p class="text-indigo-700 font-semibold">• Duyệt PT 2 mức (XĐ7)</p>
+        </div>
+      </aside>
+
+      <!-- Admin Web Main Dashboard Content -->
+      <div id="admin-main-content" class="lg:col-span-9 space-y-5"></div>
+
+    </div>
+  </main>
+
+  <!-- SCRIPTS -->
+  <script>
+// ============================================================================
+// FITMATE (KHỎE CÙNG BẠN) - CENTRALIZED MOCK DATABASE & INITIAL STATE
+// Covers all 11 Domain Entities (Appendix A) & 18 Use Cases (UC-01..UC-18)
+// ============================================================================
+
+window.FITMATE_INITIAL_STATE = {
+  currentRole: 'user', // 'user' | 'pt' | 'admin'
+  currentUserTab: 'dashboard', // 'onboarding' | 'dashboard' | 'nutrition' | 'plan' | 'rag' | 'marketplace' | 'sessions' | 'privacy'
+  currentPtTab: 'students', // 'students' | 'schedule' | 'packages' | 'chat' | 'wallet'
+  currentAdminTab: 'rag_kb', // 'rag_kb' | 'pt_verify' | 'disputes' | 'ai_logs' | 'finance'
+
+  // 1. Entity: Hồ sơ người dùng (User Profile) & 2. Mục tiêu (Goal)
+  userProfile: {
+    id: 'USR-01',
+    name: 'Lê Minh Anh',
+    age: 22,
+    gender: 'Nữ',
+    heightCm: 160,
+    weightKg: 55.8,
+    startWeightKg: 58.0,
+    targetWeightKg: 52.0,
+    goalType: 'Giảm cân & Giữ cơ', // 'Giảm cân & Giữ cơ' | 'Tăng cơ' | 'Giữ dáng'
+    activityLevel: 1.375, // Tập nhẹ 3-4 buổi/tuần
+    bmr: 1345,
+    tdee: 1850,
+    targetCalorie: 1450,
+    targetProtein: 110,
+    targetCarb: 145,
+    targetFat: 45,
+    waterMl: 1600,
+    targetWaterMl: 2200,
+    streakDays: 14,
+    tier: 'Premium (99.000đ/tháng)',
+    parqPassed: true,
+    parqNotes: 'Đau nhẹ khớp gối phải khi Squat nặng (đã bật bộ lọc an toàn AI)',
+    injuries: ['Khớp gối phải'],
+    weightHistory: [58.0, 57.5, 57.1, 56.6, 56.2, 55.8]
+  },
+
+  // 3. Entity: Bản ghi sức khỏe (Health Record - Apple HealthKit / Google Health Connect)
+  healthSync: {
+    provider: 'Apple HealthKit (iOS 18 · Apple Watch S9)',
+    connected: true,
+    lastSync: 'Vừa đồng bộ (09:40)',
+    permissions: {
+      steps: true,
+      heartRate: true,
+      activeEnergy: true,
+      sleep: true,
+      weight: true
+    },
+    todayMetrics: {
+      steps: 7840,
+      targetSteps: 8000,
+      restingHr: 68,
+      currentHr: 74,
+      sleepHours: 7.4,
+      sleepQuality: '88% (Ngủ sâu 2h15p)',
+      activeCalOut: 420
+    }
+  },
+
+  // Quyền chia sẻ dữ liệu với PT (UC-04 / REQ-09 / NĐ 356/2025/NĐ-CP)
+  privacySharing: {
+    assignedPtId: 'PT-01',
+    assignedPtName: 'HLV Trần Hoàng Nam',
+    shareWeightAndMacros: true,
+    shareFoodLog: true,
+    shareWorkoutAndSteps: true,
+    shareSleepAndHr: true,
+    shareInjuryScreening: true,
+    shareBodyPhotos: false, // Mặc định khóa theo PV-U01
+    shareGpsLocation: false, // Mặc định khóa
+    aiTrainingOptIn: false,
+    deletionRequestStatus: null // null | 'PENDING_20_DAYS'
+  },
+
+  // Cơ sở dữ liệu Món ăn Việt Nam chuẩn hóa (REQ-02 - Viện Dinh Dưỡng QG)
+  vnFoodDatabase: [
+    { id: 'VN-01', name: 'Bún bò Huế', unit: '1 tô tiêu chuẩn (550g)', cal: 480, p: 28, c: 58, f: 14, category: 'Món nước', barcode: null, portions: [
+      { label: 'Ít bún (-90 kcal)', cal: 390, p: 27, c: 38, f: 14 },
+      { label: 'Tô tiêu chuẩn (480 kcal)', cal: 480, p: 28, c: 58, f: 14 },
+      { label: 'Bỏ giò heo, nạm nạc (-130 kcal)', cal: 350, p: 26, c: 56, f: 4 }
+    ]},
+    { id: 'VN-02', name: 'Phở bò tái nạm', unit: '1 tô vừa (500g)', cal: 430, p: 26, c: 59, f: 10, category: 'Món nước', barcode: null, portions: [
+      { label: 'Phở tái nạc, ít bánh (340 kcal)', cal: 340, p: 25, c: 42, f: 7 },
+      { label: 'Tô tiêu chuẩn (430 kcal)', cal: 430, p: 26, c: 59, f: 10 },
+      { label: 'Nước béo + thêm quẩy (560 kcal)', cal: 560, p: 27, c: 72, f: 18 }
+    ]},
+    { id: 'VN-03', name: 'Cơm tấm sườn nướng', unit: '1 đĩa vừa (420g)', cal: 520, p: 30, c: 64, f: 16, category: 'Cơm Việt', barcode: null, portions: [
+      { label: '1/2 cơm, sườn nạc, không mỡ hành (410 kcal)', cal: 410, p: 29, c: 40, f: 14 },
+      { label: 'Cơm sườn tiêu chuẩn (520 kcal)', cal: 520, p: 30, c: 64, f: 16 },
+      { label: 'Sườn + Bì + Chả trứng (680 kcal)', cal: 680, p: 38, c: 68, f: 28 }
+    ]},
+    { id: 'VN-04', name: 'Bánh mì thịt nguội / ức gà áp chảo', unit: '1 ổ (220g)', cal: 360, p: 22, c: 44, f: 10, category: 'Ăn sáng', barcode: null, portions: [
+      { label: 'Bánh mì ức gà, không sốt bơ (310 kcal)', cal: 310, p: 26, c: 42, f: 4 },
+      { label: 'Ổ tiêu chuẩn (360 kcal)', cal: 360, p: 22, c: 44, f: 10 }
+    ]},
+    { id: 'VN-05', name: 'Ức gà luộc / áp chảo + Khoai lang + Bông cải', unit: '1 phần (350g)', cal: 340, p: 38, c: 34, f: 5, category: 'Eat Clean', barcode: null, portions: [
+      { label: 'Khẩu phần chuẩn 150g ức gà (340 kcal)', cal: 340, p: 38, c: 34, f: 5 },
+      { label: 'Tăng đạm 200g ức gà (410 kcal)', cal: 410, p: 49, c: 34, f: 6 }
+    ]},
+    { id: 'VN-06', name: 'Sữa tươi tiệt trùng không đường Vinamilk 180ml', unit: '1 hộp 180ml', cal: 110, p: 6, c: 8, f: 6, category: 'Đóng gói (Mã vạch)', barcode: '8934673100124', portions: [
+      { label: '1 hộp 180ml (110 kcal)', cal: 110, p: 6, c: 8, f: 6 },
+      { label: '2 hộp 360ml (220 kcal)', cal: 220, p: 12, c: 16, f: 12 }
+    ]},
+    { id: 'VN-07', name: 'Sữa chua Hy Lạp không đường TH true YOGURT', unit: '1 hộp 100g', cal: 95, p: 9, c: 6, f: 4, category: 'Đóng gói (Mã vạch)', barcode: '8935217400258', portions: [
+      { label: '1 hộp 100g (95 kcal)', cal: 95, p: 9, c: 6, f: 4 }
+    ]},
+    { id: 'VN-08', name: 'Bún riêu cua đậu phụ bắp bò', unit: '1 tô vừa (500g)', cal: 410, p: 25, c: 52, f: 11, category: 'Món nước', barcode: null, portions: [
+      { label: 'Ít bún, đậu phụ luộc (330 kcal)', cal: 330, p: 24, c: 36, f: 9 },
+      { label: 'Tô tiêu chuẩn (410 kcal)', cal: 410, p: 25, c: 52, f: 11 }
+    ]}
+  ],
+
+  // 5. Entity: Nhật ký bữa ăn hôm nay (Food Diary)
+  foodLogsToday: [
+    { id: 'LOG-1', mealType: 'Bữa sáng', time: '07:30', name: 'Bánh mì ức gà áp chảo (Không sốt bơ)', portion: '1 ổ (220g)', cal: 310, p: 26, c: 42, f: 4, method: 'CSDL Món Việt' },
+    { id: 'LOG-2', mealType: 'Bữa trưa', time: '12:15', name: 'Cơm tấm sườn nướng (1/2 cơm, sườn nạc)', portion: '1 đĩa vừa', cal: 410, p: 29, c: 40, f: 14, method: '📸 AI Chụp ảnh (18s)' },
+    { id: 'LOG-3', mealType: 'Bữa phụ chiều', time: '16:00', name: 'Sữa tươi tiệt trùng không đường Vinamilk', portion: '1 hộp 180ml', cal: 110, p: 6, c: 8, f: 6, method: '🏷️ Mã vạch 8934673100124' }
+  ],
+
+  // 4. Entity: Kế hoạch tập luyện & thực đơn tự điều chỉnh hằng tuần (UC-07 / REQ-05)
+  weeklyPlan: {
+    version: 'Tuần 4 (v4.2 – Đã tự điều chỉnh & HLV Hoàng Nam duyệt)',
+    complianceRate: 92,
+    adjustmentReason: 'Tuần 3 bạn đạt 92% buổi tập, trung bình 7.920 bước/ngày và giảm 0,4kg (56,2kg → 55,8kg). Hệ thống giữ mức 1.450 kcal/ngày và thay bài Barbell Squat bằng Glute Bridge & Đạp xe để bảo vệ khớp gối phải.',
+    days: [
+      {
+        day: 'Thứ Hai', focus: 'Thân dưới (Bảo vệ khớp gối) & Core', duration: '45 phút', estCal: 280, completed: true,
+        exercises: [
+          { name: 'Khởi động khớp hông & Đạp xe tĩnh kháng lực nhẹ', sets: '1 hiệp × 8 phút', rest: '60s', done: true, note: 'Làm ấm dịch khớp gối' },
+          { name: 'Hip Thrust / Glute Bridge với tạ đơn', sets: '4 hiệp × 12 lần (16kg)', rest: '60s', done: true, note: 'Thay thế Squat theo duyệt của HLV Nam' },
+          { name: 'Romanian Deadlift (RDL) với tạ đơn', sets: '3 hiệp × 12 lần (10kg/tay)', rest: '60s', done: true, note: 'Giữ lưng thẳng, tập trung đùi sau' },
+          { name: 'Plank siết bụng & Deadbug', sets: '3 hiệp × 45 giây', rest: '45s', done: true, note: 'Giữ nhịp thở đều' }
+        ]
+      },
+      {
+        day: 'Thứ Tư (Hôm nay)', focus: 'Thân trên (Lưng - Vai - Tay) & Calisthenics', duration: '45 phút', estCal: 310, completed: false,
+        exercises: [
+          { name: 'Kéo cáp lưng xô (Lat Pulldown)', sets: '4 hiệp × 12 lần (25kg)', rest: '60s', done: true, note: 'Hạ bả vai trước khi kéo' },
+          { name: 'Chống đẩy trên bục cao (Incline Push-up)', sets: '3 hiệp × 12 lần', rest: '60s', done: true, note: 'Bài tập Calisthenics chuẩn form' },
+          { name: 'Đẩy vai tạ đơn ngồi (Seated Dumbbell Press)', sets: '3 hiệp × 12 lần (6kg/tay)', rest: '60s', done: false, note: 'Không võng lưng dưới' },
+          { name: 'Đi bộ dốc nhẹ trên máy (Incline Walk)', sets: '1 hiệp × 15 phút', rest: '—', done: false, note: 'Giữ nhịp tim vùng 2 (125–135 bpm)' }
+        ]
+      },
+      {
+        day: 'Thứ Sáu', focus: 'Full Body Functional & Đốt mỡ', duration: '50 phút', estCal: 340, completed: false,
+        exercises: [
+          { name: 'Kéo lưng với dây TRX / Seated Cable Row', sets: '4 hiệp × 12 lần', rest: '60s', done: false, note: 'Kiểm soát nhịp nhả tạ 2 giây' },
+          { name: 'Bước lên bục thấp (Low Step-up 20cm)', sets: '3 hiệp × 10 lần/chân', rest: '60s', done: false, note: 'Biên độ an toàn cho khớp gối' },
+          { name: 'Farmer Walk (Đi bộ xách tạ giữ Core)', sets: '3 hiệp × 40 mét', rest: '60s', done: false, note: 'Tăng sức bền toàn thân' }
+        ]
+      }
+    ]
+  },
+
+  // Ảnh cơ thể phân tích AI định kỳ (Release 3.0 - FE-6 / UC-12)
+  bodyPhotos: [
+    { id: 'IMG-01', date: '15/10/2026 (Tuần 1)', weight: 58.0, waistEst: '71,5 cm', bodyFatEst: '27,8%', postureNote: 'Hơi đổ vai trước nhẹ (Forward Shoulder)', encrypted: true },
+    { id: 'IMG-02', date: '11/11/2026 (Tuần 4)', weight: 55.8, waistEst: '68,2 cm (-3,3cm)', bodyFatEst: '25,4% (-2,4%)', postureNote: 'Trục vai và lưng trên cân đối hơn rõ rệt', encrypted: true }
+  ],
+
+  // 6. Entity: Kho tài liệu tri thức RAG (Knowledge Base Documents - Admin duyệt)
+  ragDocuments: [
+    { id: 'DOC-01', title: 'Bảng Thành phần Thực phẩm Việt Nam – Viện Dinh Dưỡng Quốc Gia', category: 'Dinh dưỡng món Việt', version: 'v2025.2', chunks: 1840, status: 'APPROVED', approvedBy: 'Admin Minh Hải & Chuyên gia S10', updatedAt: '12/10/2026' },
+    { id: 'DOC-02', title: 'Hướng dẫn Sàng lọc An toàn & Kháng lực ACSM / NSCA', category: 'Y học Thể thao & Chấn thương', version: 'v2025.1', chunks: 640, status: 'APPROVED', approvedBy: 'BS. Nguyễn Lan Hương (S10)', updatedAt: '18/10/2026' },
+    { id: 'DOC-03', title: 'Cẩm nang Tính toán BMR, TDEE & Điều chỉnh Macro Chu kỳ Tuần', category: 'Sinh lý Dinh dưỡng', version: 'v1.4', chunks: 420, status: 'APPROVED', approvedBy: 'Admin Minh Hải', updatedAt: '25/10/2026' },
+    { id: 'DOC-04', title: 'Phác đồ Thực đơn Giảm mỡ Bền vững cho Sinh viên & Văn phòng VN 2026', category: 'Thực đơn Mẫu VN', version: 'v1.0', chunks: 315, status: 'PENDING', approvedBy: 'Chờ Admin duyệt & băm Vector', updatedAt: '10/11/2026' }
+  ],
+
+  // 7. Entity: Hội thoại RAG Chatbot (UC-09, UC-10)
+  ragConversation: [
+    {
+      sender: 'ai',
+      time: '09:30',
+      text: 'Xin chào Minh Anh! Hôm nay bạn đã nạp **830 / 1.450 kcal** (còn **620 kcal** và **49g Đạm** cho bữa tối). Mọi câu trả lời của mình đều trích xuất 100% từ kho tài liệu chuyên môn đã được Admin duyệt. Bạn cần tư vấn thực đơn hay bài tập hôm nay?',
+      citation: 'DOC-03: Cẩm nang Tính toán BMR, TDEE & Macro, Mục 2.1',
+      docId: 'DOC-03',
+      isSafetyAlert: false,
+      ptReviewed: true
+    }
+  ],
+
+  // 8. Entity: Danh sách PT Freelancer & 9. Khóa tập (PT Marketplace - FE-7)
+  ptList: [
+    {
+      id: 'PT-01',
+      name: 'HLV Trần Hoàng Nam',
+      age: 29,
+      location: 'Quận 3 & Online (TP.HCM)',
+      expYears: 5,
+      verifiedStatus: 'VERIFIED', // 'VERIFIED' | 'UNVERIFIED_FAST'
+      certificates: ['NASM-CPT Quốc tế', 'Chứng chỉ Dinh dưỡng Thể thao VBF'],
+      specialties: ['Giảm mỡ bền vững', 'Phục hồi khớp gối & lưng', 'Calisthenics'],
+      rating: 4.9,
+      reviewCount: 42,
+      pricePerSession: 300000,
+      packageSessions: 12,
+      packageTotal: 3600000,
+      commissionRate: 12, // 12% hoa hồng nền tảng (REQ-14)
+      bio: '5 năm kinh nghiệm kèm 1-1 cho sinh viên và dân văn phòng. Chuyên thiết kế thực đơn món Việt dễ ăn ngoài hàng và bài tập bảo vệ khớp.',
+      reviews: [
+        { student: 'Nguyễn Thu Trang', rating: 5, text: 'Anh Nam chỉnh form cực kỹ, xem dữ liệu Apple Watch trên FitMate nên không phải nhắn Zalo nhắc ăn mỗi tối nữa!' },
+        { student: 'Lê Minh Anh', rating: 5, text: 'Đau gối nhẹ được anh đổi bài tập ngay trên app, giảm 2,2kg sau 3 tuần rất khỏe.' }
+      ]
+    },
+    {
+      id: 'PT-02',
+      name: 'HLV Nguyễn Thảo Vy',
+      age: 26,
+      location: 'Cầu Giấy & Đống Đa (Hà Nội)',
+      expYears: 4,
+      verifiedStatus: 'VERIFIED',
+      certificates: ['ACE-CPT', 'HLV Yoga & Pilates Phục hồi Tư thế'],
+      specialties: ['Giữ dáng & Siết eo', 'Chỉnh tư thế văn phòng', 'Nữ giới'],
+      rating: 4.85,
+      reviewCount: 31,
+      pricePerSession: 280000,
+      packageSessions: 10,
+      packageTotal: 2800000,
+      commissionRate: 12,
+      bio: 'Đồng hành nhẹ nhàng, tập trung cải thiện võng lưng, lệch vai và thực đơn Eat Clean thuần Việt nhanh gọn.',
+      reviews: [
+        { student: 'Hoàng Mai Linh', rating: 5, text: 'Chị Vy siêu tâm lý, tiền giữ qua Escrow giải ngân từng buổi nên rất yên tâm.' }
+      ]
+    },
+    {
+      id: 'PT-03',
+      name: 'HLV Đặng Tuấn Kiệt',
+      age: 27,
+      location: 'Bình Thạnh (TP.HCM)',
+      expYears: 3,
+      verifiedStatus: 'UNVERIFIED_FAST', // Mức 1: Đăng ký nhanh, chờ Admin cấp tick xanh Mức 2 (XĐ7)
+      certificates: ['Chứng chỉ Liên đoàn Thể hình VN (Đang chờ đối chiếu bản gốc)'],
+      specialties: ['Tăng cơ nam', 'Street Workout / Calisthenics'],
+      rating: 4.7,
+      reviewCount: 9,
+      pricePerSession: 220000,
+      packageSessions: 10,
+      packageTotal: 2200000,
+      commissionRate: 12,
+      bio: 'Chuyên Calisthenics tăng cơ tại nhà hoặc công viên không cần nhiều tạ.',
+      reviews: []
+    }
+  ],
+
+  // 10. Entity: Buổi tập (Sessions) & 11. Giao dịch giữ tiền trung gian (Escrow Transaction)
+  activeEscrowContract: {
+    contractId: 'ESC-2026-089',
+    studentName: 'Lê Minh Anh',
+    ptId: 'PT-01',
+    ptName: 'HLV Trần Hoàng Nam',
+    packageName: 'Gói Kèm 1-1: Giảm mỡ & Bảo vệ khớp gối (12 buổi)',
+    totalAmount: 3600000,
+    pricePerSession: 300000,
+    platformFeePercent: 12,
+    totalSessions: 12,
+    completedSessions: 4,
+    releasedAmount: 1200000,
+    heldAmount: 2400000,
+    status: 'ACTIVE_ESCROW',
+    sessions: [
+      { id: 'SES-01', no: 1, date: '21/10/2026 · 18:00', topic: 'Đánh giá InBody, Sàng lọc khớp gối & Kỹ thuật Hip Hinge', status: 'COMPLETED_PAID', payout: 264000, fee: 36000 },
+      { id: 'SES-02', no: 2, date: '25/10/2026 · 18:00', topic: 'Thân trên cơ bản & Điều chỉnh thực đơn món Việt', status: 'COMPLETED_PAID', payout: 264000, fee: 36000 },
+      { id: 'SES-03', no: 3, date: '01/11/2026 · 18:00', topic: 'Glute Bridge, RDL & Core chống võng lưng', status: 'COMPLETED_PAID', payout: 264000, fee: 36000 },
+      { id: 'SES-04', no: 4, date: '06/11/2026 · 18:00', topic: 'Calisthenics thân trên & Kiểm tra tiến độ Tuần 3', status: 'COMPLETED_PAID', payout: 264000, fee: 36000 },
+      { id: 'SES-05', no: 5, date: '11/11/2026 (Hôm nay) · 18:00', topic: 'Buổi 5: Lưng - Vai - Tay & Duyệt kế hoạch Tuần 4', status: 'SCHEDULED', payout: 264000, fee: 36000 },
+      { id: 'SES-06', no: 6, date: '14/11/2026 (Thứ Bảy) · 09:00', topic: 'Buổi 6: Thân dưới an toàn khớp gối & Cardio Zone 2', status: 'SCHEDULED', payout: 264000, fee: 36000 }
+    ]
+  },
+
+  // Danh sách học viên của PT Trần Hoàng Nam (PT App Dashboard - UC-16 / REQ-10)
+  ptStudents: [
+    {
+      id: 'STU-01',
+      name: 'Lê Minh Anh (22t)',
+      goal: 'Giảm cân (58kg → 52kg)',
+      currentWeight: '55,8 kg (-2,2kg)',
+      compliance: 92,
+      streak: 14,
+      sessionsDone: '4 / 12 buổi',
+      missedLogDays: 0,
+      statusBadge: 'GOOD',
+      sharedPermissions: ['Cân nặng & Macro', 'Nhật ký bữa ăn', 'Bước chân & Giấc ngủ', 'Sàng lọc chấn thương'],
+      lockedPermissions: ['Ảnh cơ thể (Body Photos)', 'Vị trí GPS'],
+      todaySummary: 'Đã nạp 830/1.450 kcal · 7.840 bước · Ngủ 7h24p'
+    },
+    {
+      id: 'STU-02',
+      name: 'Nguyễn Hoàng Long (25t)',
+      goal: 'Tăng cơ giảm mỡ (74kg → 70kg)',
+      currentWeight: '72,9 kg (-1,1kg)',
+      compliance: 54,
+      streak: 0,
+      sessionsDone: '3 / 10 buổi',
+      missedLogDays: 3,
+      statusBadge: 'MISSED_LOGS', // Cảnh báo tự động bỏ nhật ký >= 3 ngày (PV-PT01 câu 10)
+      sharedPermissions: ['Cân nặng & Macro', 'Nhật ký bữa ăn', 'Lịch tập'],
+      lockedPermissions: ['Ảnh cơ thể', 'Giấc ngủ', 'Vị trí GPS'],
+      todaySummary: 'Chưa ghi bữa ăn 3 ngày · Hôm nay báo hủy lịch sát giờ (trước 4 tiếng)'
+    },
+    {
+      id: 'STU-03',
+      name: 'Phạm Quốc Bảo (28t)',
+      goal: 'Giảm mỡ bụng văn phòng',
+      currentWeight: '78,4 kg (-1,6kg)',
+      compliance: 85,
+      streak: 6,
+      sessionsDone: '6 / 12 buổi',
+      missedLogDays: 0,
+      statusBadge: 'AI_ESCALATED', // Chuyển tiếp từ RAG Chatbot do đau khớp gối (UC-10, UC-11)
+      sharedPermissions: ['Cân nặng & Macro', 'Nhật ký bữa ăn', 'Sàng lọc chấn thương'],
+      lockedPermissions: ['Ảnh cơ thể', 'Vị trí GPS'],
+      todaySummary: '🩺 AI Chatbot vừa chuyển tiếp: Học viên báo đau nhói khớp gối phải khi tập Squat, chờ PT duyệt đổi bài.'
+    }
+  ],
+
+  // Tin nhắn Chat In-App gắn với Kế hoạch giữa PT và Học viên (FE-8 / UC-16)
+  ptChatMessages: [
+    { sender: 'pt', name: 'HLV Trần Hoàng Nam', time: '08:15', text: 'Chào Minh Anh, anh thấy trên Dashboard FitMate tuần qua em đi bộ đều 7.900 bước/ngày và giảm 0,4kg rất chuẩn! Chiều nay 18:00 mình tập Buổi 5 nhé.' },
+    { sender: 'user', name: 'Lê Minh Anh', time: '08:42', text: 'Vâng anh Nam! Hôm qua em hơi mỏi gối phải nên em hỏi AI RAG, hệ thống đã đổi bài Squat sang Glute Bridge trong kế hoạch Tuần 4 rồi ạ.' },
+    { sender: 'pt', name: 'HLV Trần Hoàng Nam', time: '08:50', text: 'Anh vừa bấm duyệt phác đồ đó trên PT App rồi. Trưa nay ăn Cơm tấm em nhớ chọn phần ít mỡ hành như gợi ý trong app nhé!' }
+  ],
+
+  // Khiếu nại giao dịch Escrow trên Admin Web (UC-17, UC-18 / REQ-15)
+  adminDisputes: [
+    {
+      id: 'DSP-104',
+      createdAt: '10/11/2026',
+      studentName: 'Vũ Thu Hà',
+      ptName: 'HLV Lê Văn Tùng',
+      packageInfo: 'Gói 10 buổi (3.000.000đ) · Đã tập 3 buổi, còn giữ Escrow 7 buổi (2.100.000đ)',
+      reason: 'PT tự ý đổi lịch sát giờ (< 4 tiếng) 3 lần liên tiếp khiến học viên không sắp xếp được thời gian. Học viên yêu cầu hủy gói và nhận lại tiền 7 buổi đang giữ trong Escrow.',
+      evidence: 'Log đặt lịch tự động trên hệ thống xác nhận PT bấm dời lịch lúc 15:10 cho các buổi 18:00 ngày 02/11, 05/11 và 09/11.',
+      heldAmount: 2100000,
+      status: 'OPEN' // 'OPEN' | 'REFUNDED_TO_STUDENT' | 'RELEASED_TO_PT'
+    }
+  ]
+};
+
+</script>
+  <script>
+// ============================================================================
+// FITMATE (KHỎE CÙNG BẠN) - RESPONSIVE MULTI-PLATFORM CONTROLLER
+// - User App: Native Mobile App UI (iOS HealthKit / Android Health Connect)
+// - PT App: Native Mobile App UI for Freelance Trainers
+// - Admin Web: Full Responsive Web Portal for Operations & RAG Governance
+// ============================================================================
+
+const state = JSON.parse(JSON.stringify(window.FITMATE_INITIAL_STATE));
+state.mobileOs = 'iOS'; // 'iOS' (Apple HealthKit) | 'Android' (Google Health Connect)
+let selectedFoodId = 'VN-01';
+let selectedPortionIdx = 1;
+let selectedMealTime = 'Bữa tối';
+let activePlanDayIdx = 1;
+
+// Toast Notification Utility
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const el = document.createElement('div');
+  const colors = {
+    success: 'bg-emerald-600 text-white border-emerald-500',
+    warning: 'bg-amber-600 text-white border-amber-500',
+    danger: 'bg-rose-600 text-white border-rose-500',
+    info: 'bg-sky-600 text-white border-sky-500'
+  };
+  el.className = `px-3.5 py-2.5 rounded-xl shadow-lg border text-xs font-bold flex items-center gap-2 transition-all duration-300 ${colors[type] || colors.success}`;
+  el.innerHTML = `<span>✨</span><span>${msg}</span>`;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 300);
+  }, 3200);
+}
+
+// Computed Totals for Today's Nutrition
+function getTodayNutritionTotals() {
+  return state.foodLogsToday.reduce(
+    (acc, item) => {
+      acc.cal += item.cal;
+      acc.p += item.p;
+      acc.c += item.c;
+      acc.f += item.f;
+      return acc;
+    },
+    { cal: 0, p: 0, c: 0, f: 0 }
+  );
+}
+
+// Recalculate BMR & TDEE (Mifflin-St Jeor) - UC-02 & UC-07
+function recalculateBmrTdee() {
+  const u = state.userProfile;
+  const s = u.gender === 'Nam' ? 5 : -161;
+  const bmr = Math.round(10 * u.weightKg + 6.25 * u.heightCm - 5 * u.age + s);
+  const tdee = Math.round(bmr * u.activityLevel);
+  let targetCal = tdee;
+  if (u.goalType.includes('Giảm cân')) targetCal = tdee - 400;
+  else if (u.goalType.includes('Tăng cơ')) targetCal = tdee + 300;
+
+  u.bmr = bmr;
+  u.tdee = tdee;
+  u.targetCalorie = targetCal;
+  u.targetProtein = Math.round(u.weightKg * 2.0);
+  u.targetFat = Math.round((targetCal * 0.25) / 9);
+  u.targetCarb = Math.round((targetCal - u.targetProtein * 4 - u.targetFat * 9) / 4);
+}
+
+// ============================================================================
+// PLATFORM ROLE SWITCHER (USER MOBILE APP | PT MOBILE APP | ADMIN WEB)
+// ============================================================================
+function switchRole(role) {
+  state.currentRole = role;
+  const activeClasses = {
+    user: 'flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950 shadow transition flex items-center justify-center gap-1.5',
+    pt: 'flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500 text-slate-950 shadow transition flex items-center justify-center gap-1.5',
+    admin: 'flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-500 text-white shadow transition flex items-center justify-center gap-1.5'
+  };
+  const inactiveClass = 'flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition flex items-center justify-center gap-1.5';
+
+  ['user', 'pt', 'admin'].forEach(r => {
+    const btn = document.getElementById('role-btn-' + r);
+    const view = document.getElementById('role-view-' + r);
+    if (r === role) {
+      btn.className = activeClasses[r];
+      view.classList.remove('hidden');
+    } else {
+      btn.className = inactiveClass;
+      view.classList.add('hidden');
+    }
+  });
+  renderAll();
+}
+
+function actionSwitchMobileOs() {
+  state.mobileOs = state.mobileOs === 'iOS' ? 'Android' : 'iOS';
+  if (state.mobileOs === 'iOS') {
+    state.healthSync.provider = 'Apple HealthKit (iOS 18 · Apple Watch S9)';
+  } else {
+    state.healthSync.provider = 'Google Health Connect (Android 14 · Galaxy Watch)';
+  }
+  const badge = document.getElementById('user-os-badge');
+  if (badge) {
+    badge.textContent = state.mobileOs === 'iOS' ? 'iOS · HealthKit' : 'Android · Health Connect';
+  }
+  showToast(`Đã chuyển nền tảng sang ${state.healthSync.provider} (Bảng 2.4 Assignment 01)!`, 'info');
+  renderUserView();
+}
+
+function switchUserTab(tab) {
+  state.currentUserTab = tab;
+  renderUserView();
+}
+
+function switchPtTab(tab) {
+  state.currentPtTab = tab;
+  renderPtView();
+}
+
+function switchAdminTab(tab) {
+  state.currentAdminTab = tab;
+  renderAdminView();
+}
+
+// ============================================================================
+// 1. RENDER USER APP (MOBILE VIEWPORT + 8 COMPLETE FLOWS)
+// ============================================================================
+const userFlowMeta = {
+  dashboard: { title: 'Tổng quan Hôm nay', icon: '🏠', uc: 'UC-03, UC-06, UC-08', desc: 'Đồng bộ tự động từ Apple HealthKit (iOS) / Health Connect (Android) kèm nút Ngắt kết nối nhanh (Phụ lục E).' },
+  onboarding: { title: 'Hồ sơ & Sàng lọc PAR-Q+', icon: '🩺', uc: 'UC-01, UC-02 (FE-1)', desc: 'Tự tính BMR/TDEE và sàng lọc chấn thương/bệnh nền ban đầu trước khi sinh kế hoạch tập.' },
+  nutrition: { title: 'Nhật ký Món Việt (<1–3p)', icon: '🍜', uc: 'UC-05 (REQ-01, REQ-02)', desc: 'Giải quyết nỗi đau mất 5 phút nhập Bún bò của PV-U01: Chụp ảnh AI, Mã vạch & Chỉnh khẩu phần 1-chạm.' },
+  plan: { title: 'Kế hoạch Tuần & Ảnh AI', icon: '📅', uc: 'UC-07, UC-12 (FE-4, FE-6)', desc: 'Tự động điều chỉnh thực đơn & lịch tập hằng tuần (ĐTB 4,14/5 cao nhất khảo sát Q10) + AI phân tích ảnh body.' },
+  rag: { title: 'Tư vấn AI RAG Có nguồn', icon: '🤖', uc: 'UC-09, UC-10 (FE-5)', desc: '100% câu trả lời trích dẫn tài liệu Admin duyệt; tự động chặn bài tập rủi ro khi phát hiện đau khớp gối.' },
+  marketplace: { title: 'Sàn Thuê PT Freelancer', icon: '🏋️', uc: 'UC-14 (FE-7, REQ-11)', desc: 'Tìm PT theo huy hiệu Đã xác minh chứng chỉ, đánh giá học viên cũ (4,19/5) và mua gói qua Escrow.' },
+  sessions: { title: 'Lịch tập, Escrow & Chat', icon: '💬', uc: 'UC-15, UC-17 (FE-7, FE-8)', desc: 'Giữ tiền trung gian giải ngân từng buổi hoàn thành, hủy/dời lịch trước >=12h và Chat in-app gắn với plan.' },
+  privacy: { title: 'Quyền Riêng tư (NĐ 356)', icon: '🔒', uc: 'UC-04 (REQ-09)', desc: 'Bật/tắt chia sẻ từng loại dữ liệu với PT, ngắt kết nối 1-chạm, rút quyền <=15 ngày, xóa dữ liệu <=20 ngày.' }
+};
+
+function renderUserView() {
+  const tab = state.currentUserTab;
+  const meta = userFlowMeta[tab] || userFlowMeta.dashboard;
+
+  // Update mobile top header
+  document.getElementById('user-app-header-title').textContent = meta.title;
+  document.getElementById('user-app-header-sub').textContent = `${meta.uc} · 🔥 ${state.userProfile.streakDays} ngày Streak`;
+
+  // Update 5 bottom navigation buttons
+  const primaryTabs = ['dashboard', 'nutrition', 'plan', 'rag', 'marketplace'];
+  primaryTabs.forEach(t => {
+    const btn = document.getElementById('u-bnav-' + t);
+    if (!btn) return;
+    const isAct = (t === tab) || (t === 'marketplace' && tab === 'sessions');
+    btn.className = `flex flex-col items-center justify-center py-1 rounded-xl transition ${isAct ? 'text-emerald-600 font-extrabold bg-emerald-50/80' : 'text-slate-500 font-medium hover:text-slate-800'}`;
+  });
+
+  // Update desktop quick jumper & SRS context panel
+  const jumper = document.getElementById('user-flow-jumper');
+  if (jumper) {
+    jumper.innerHTML = Object.keys(userFlowMeta).map(k => {
+      const m = userFlowMeta[k];
+      const active = k === tab;
+      return `
+        <button onclick="switchUserTab('${k}')" class="p-2 rounded-xl border text-left transition ${active ? 'bg-emerald-600 text-white border-emerald-600 font-bold shadow-sm' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}">
+          <div class="text-xs truncate">${m.icon} ${m.title}</div>
+          <div class="text-xs opacity-75 truncate">${m.uc}</div>
+        </button>
+      `;
+    }).join('');
+  }
+
+  const srsBox = document.getElementById('user-srs-context-box');
+  if (srsBox) {
+    srsBox.innerHTML = `
+      <p class="font-bold text-emerald-700">${meta.icon} ${meta.title} (${meta.uc})</p>
+      <p class="text-slate-600 leading-relaxed">${meta.desc}</p>
+      <div class="pt-1 border-t border-slate-200 flex items-center justify-between text-slate-500">
+        <span>Nền tảng: <b>${state.mobileOs}</b></span>
+        <button onclick="actionSwitchMobileOs()" class="text-emerald-600 font-bold hover:underline">Đổi iOS / Android</button>
+      </div>
+    `;
+  }
+
+  // Render inside mobile viewport
+  const viewport = document.getElementById('user-mobile-viewport');
+  const u = state.userProfile;
+  const h = state.healthSync;
+  const totals = getTodayNutritionTotals();
+  const calRem = Math.max(0, u.targetCalorie - totals.cal);
+
+  if (tab === 'dashboard') {
+    viewport.innerHTML = `
+      <!-- 1. Native Health Sync Card with Quick Disconnect (Appendix E Mockup Feedback) -->
+      <div class="p-3 rounded-2xl border ${h.connected ? 'border-emerald-200 bg-emerald-50/90' : 'border-amber-300 bg-amber-50'} flex items-center justify-between gap-2 shadow-sm">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span class="text-xl shrink-0">${h.connected ? '⌚' : '⚠️'}</span>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <p class="text-xs font-extrabold text-slate-900 truncate">${h.provider}</p>
+              <span class="w-2 h-2 rounded-full shrink-0 ${h.connected ? 'bg-emerald-500' : 'bg-amber-500'}"></span>
+            </div>
+            <p class="text-xs text-slate-600 truncate">
+              ${h.connected ? h.lastSync : (state.mobileOs === 'iOS' ? 'HealthKit trả về rỗng: Chưa có dữ liệu (DEF-01)' : 'Đã thu hồi quyền đọc lịch sử 30 ngày')}
+            </p>
+          </div>
+        </div>
+        <button onclick="actionToggleHealthSync()" class="px-2.5 py-1.5 rounded-xl text-xs font-bold shrink-0 ${h.connected ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-emerald-600 text-white'}">
+          ${h.connected ? 'Ngắt kết nối' : 'Kết nối'}
+        </button>
+      </div>
+
+      <!-- 2. Calorie Ring & Energy Balance Card (FE-3 / UC-06) -->
+      <div class="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Năng lượng (TDEE: ${u.tdee} kcal)</span>
+          <span class="text-xs font-bold text-emerald-600">Mục tiêu: ${u.targetCalorie} kcal</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+            <p class="text-xs text-slate-500">Đã nạp (In)</p>
+            <p class="text-base font-black text-sky-600 mt-0.5">${totals.cal}</p>
+            <p class="text-xs text-slate-400">kcal</p>
+          </div>
+          <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
+            <p class="text-xs font-bold text-emerald-800">Còn lại</p>
+            <p class="text-lg font-black text-emerald-600 mt-0.5">${calRem}</p>
+            <p class="text-xs text-emerald-700">kcal</p>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+            <p class="text-xs text-slate-500">Tiêu hao (Out)</p>
+            <p class="text-base font-black text-amber-600 mt-0.5">${h.connected ? h.todayMetrics.activeCalOut : '—'}</p>
+            <p class="text-xs text-slate-400">${h.connected ? 'kcal' : 'Chưa có DL'}</p>
+          </div>
+        </div>
+
+        <!-- Macros progress -->
+        <div class="grid grid-cols-3 gap-2 pt-1 text-xs">
+          <div>
+            <div class="flex justify-between font-bold text-slate-700"><span>Đạm</span><span>${totals.p}/${u.targetProtein}g</span></div>
+            <div class="w-full h-1.5 bg-slate-200 rounded-full mt-1 overflow-hidden"><div class="h-1.5 bg-rose-500 rounded-full" style="width:${Math.min(100, Math.round((totals.p / u.targetProtein) * 100))}%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between font-bold text-slate-700"><span>Carb</span><span>${totals.c}/${u.targetCarb}g</span></div>
+            <div class="w-full h-1.5 bg-slate-200 rounded-full mt-1 overflow-hidden"><div class="h-1.5 bg-sky-500 rounded-full" style="width:${Math.min(100, Math.round((totals.c / u.targetCarb) * 100))}%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between font-bold text-slate-700"><span>Béo</span><span>${totals.f}/${u.targetFat}g</span></div>
+            <div class="w-full h-1.5 bg-slate-200 rounded-full mt-1 overflow-hidden"><div class="h-1.5 bg-amber-500 rounded-full" style="width:${Math.min(100, Math.round((totals.f / u.targetFat) * 100))}%"></div></div>
+          </div>
+        </div>
+
+        <button onclick="switchUserTab('nutrition')" class="w-full py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-sm hover:bg-emerald-700">
+          + Ghi nhận Bữa ăn Món Việt (&lt; 1 phút)
+        </button>
+      </div>
+
+      <!-- 3. Device Biometrics & Water Grid (2x2 mobile cards) -->
+      <div class="grid grid-cols-2 gap-2.5">
+        <div class="p-3 rounded-2xl bg-white border border-slate-200 shadow-sm">
+          <p class="text-xs text-slate-500">👣 Bước chân</p>
+          <p class="text-sm font-extrabold text-slate-900 mt-0.5">${h.connected ? h.todayMetrics.steps.toLocaleString('vi-VN') + ' / 8.000' : 'Chưa có dữ liệu'}</p>
+        </div>
+        <div class="p-3 rounded-2xl bg-white border border-slate-200 shadow-sm">
+          <p class="text-xs text-slate-500">❤️ Nhịp tim</p>
+          <p class="text-sm font-extrabold text-rose-600 mt-0.5">${h.connected ? h.todayMetrics.currentHr + ' bpm (Nghỉ 68)' : 'Chưa có dữ liệu'}</p>
+        </div>
+        <div class="p-3 rounded-2xl bg-white border border-slate-200 shadow-sm">
+          <p class="text-xs text-slate-500">🌙 Giấc ngủ</p>
+          <p class="text-sm font-extrabold text-indigo-600 mt-0.5">${h.connected ? h.todayMetrics.sleepHours + 'h (Tốt)' : 'Chưa có dữ liệu'}</p>
+        </div>
+        <div class="p-3 rounded-2xl bg-sky-50 border border-sky-200 shadow-sm">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-sky-800">💧 Nước</span>
+            <button onclick="actionAddWater()" class="px-1.5 py-0.5 rounded bg-sky-600 text-white text-xs font-bold">+250ml</button>
+          </div>
+          <p class="text-sm font-extrabold text-sky-700 mt-0.5">${u.waterMl} / ${u.targetWaterMl}ml</p>
+        </div>
+      </div>
+
+      <!-- 4. Weight Progress Mini Bar Chart (REQ-06 - Survey 4.03/5) -->
+      <div class="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-bold text-slate-800">📉 Tiến độ Cân nặng 6 tuần</span>
+          <span class="text-xs font-extrabold text-emerald-600">-2,2 kg (58,0 → ${u.weightKg}kg)</span>
+        </div>
+        <div class="grid grid-cols-6 gap-1.5 items-end h-16 pt-2">
+          ${u.weightHistory.map((w, idx) => {
+            const hPct = Math.max(30, Math.min(100, Math.round(((w - 50) / 10) * 100)));
+            return `
+              <div class="flex flex-col items-center gap-0.5">
+                <span class="text-xs font-bold text-slate-600">${w}</span>
+                <div class="w-full rounded-t ${idx === u.weightHistory.length - 1 ? 'bg-emerald-600' : 'bg-emerald-300'}" style="height:${hPct * 0.45}px"></div>
+                <span class="text-xs text-slate-400">T${idx + 1}</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+
+      <!-- 5. Active PT Session & Escrow Quick Card -->
+      <div class="p-3.5 rounded-2xl bg-slate-900 text-white space-y-2 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-emerald-400">🛡️ Gói PT 1-1 · Ví Giữ tiền Escrow</span>
+          <span class="text-xs px-2 py-0.5 rounded bg-slate-800 text-sky-300 font-bold">Đã giải ngân ${state.activeEscrowContract.completedSessions}/12 buổi</span>
+        </div>
+        <p class="text-xs font-bold">Hôm nay 18:00: Buổi 5 với ${state.activeEscrowContract.ptName}</p>
+        <p class="text-xs text-slate-300">Đang giữ an toàn: <b>${state.activeEscrowContract.heldAmount.toLocaleString('vi-VN')}đ</b></p>
+        <div class="flex gap-2 pt-1">
+          <button onclick="switchUserTab('sessions')" class="flex-1 py-2 rounded-xl bg-emerald-500 text-slate-950 text-xs font-extrabold">
+            Mở Lịch tập &amp; Chat PT
+          </button>
+          <button onclick="switchUserTab('rag')" class="py-2 px-3 rounded-xl bg-slate-800 text-white text-xs font-bold">
+            🤖 Hỏi AI
+          </button>
+        </div>
+      </div>
+    `;
+  } else if (tab === 'onboarding') {
+    viewport.innerHTML = `
+      <div class="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3.5">
+        <div>
+          <span class="text-xs font-bold text-emerald-600 uppercase">UC-01 &amp; UC-02 · FE-1</span>
+          <h3 class="text-sm font-extrabold text-slate-900">Hồ sơ Cơ thể &amp; Tự tính BMR/TDEE</h3>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5 text-xs">
+          <div>
+            <label class="font-bold text-slate-600 block mb-1">Chiều cao (cm)</label>
+            <input type="number" id="inp-height" value="${u.heightCm}" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+          </div>
+          <div>
+            <label class="font-bold text-slate-600 block mb-1">Cân nặng (kg)</label>
+            <input type="number" step="0.1" id="inp-weight" value="${u.weightKg}" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+          </div>
+        </div>
+
+        <div class="text-xs">
+          <label class="font-bold text-slate-600 block mb-1">Mục tiêu thể hình (Goal)</label>
+          <select id="inp-goal" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold">
+            <option value="Giảm cân & Giữ cơ" ${u.goalType.includes('Giảm cân') ? 'selected' : ''}>Giảm cân &amp; Giữ cơ (-400 kcal)</option>
+            <option value="Giữ dáng & Săn chắc" ${u.goalType.includes('Giữ dáng') ? 'selected' : ''}>Giữ dáng (Duy trì TDEE)</option>
+            <option value="Tăng cơ (Lean Bulk)" ${u.goalType.includes('Tăng cơ') ? 'selected' : ''}>Tăng cơ (+300 kcal)</option>
+          </select>
+        </div>
+
+        <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 space-y-2 text-xs">
+          <p class="font-bold text-amber-900">🩺 Sàng lọc An toàn Vận động (PAR-Q+ · REQ-04)</p>
+          <label class="flex items-start gap-2">
+            <input type="checkbox" checked class="mt-0.5 w-4 h-4 accent-amber-600" />
+            <span class="text-amber-900">Đau/tiền sử chấn thương khớp gối phải (AI tự động khóa bài Squat/Jump Lunge nặng)</span>
+          </label>
+          <label class="flex items-start gap-2">
+            <input type="checkbox" class="mt-0.5 w-4 h-4 accent-amber-600" />
+            <span class="text-amber-900">Đau thắt lưng / Bệnh lý tim mạch</span>
+          </label>
+        </div>
+
+        <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-center font-bold text-emerald-800">
+          BMR: ${u.bmr} kcal · TDEE: ${u.tdee} kcal → Mục tiêu: ${u.targetCalorie} kcal
+        </div>
+
+        <button onclick="actionSaveProfileAndRecalc()" class="w-full py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-extrabold shadow-sm">
+          💾 Lưu Hồ sơ &amp; Tính lại Kế hoạch
+        </button>
+      </div>
+    `;
+  } else if (tab === 'nutrition') {
+    const foodObj = state.vnFoodDatabase.find(f => f.id === selectedFoodId) || state.vnFoodDatabase[0];
+    const portionObj = foodObj.portions[selectedPortionIdx] || foodObj.portions[0];
+
+    viewport.innerHTML = `
+      <!-- Fast Capture Buttons (< 1-3 mins requirement - Survey Q17: 91.7%) -->
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="actionSimulateAiFoodCamera()" class="p-2.5 rounded-2xl bg-emerald-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm">
+          <span>📸</span><span>Chụp ảnh Món Việt AI</span>
+        </button>
+        <button onclick="actionSimulateBarcodeScan()" class="p-2.5 rounded-2xl bg-slate-900 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm">
+          <span>🏷️</span><span>Quét Mã vạch Siêu thị</span>
+        </button>
+      </div>
+
+      <!-- Select Dish & Quick Portion Modifier (Solves PV-U01 5-min Bun Bo complaint) -->
+      <div class="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3 text-xs">
+        <div class="flex justify-between items-center">
+          <span class="font-extrabold text-slate-800">🇻🇳 CSDL Món Việt (Viện Dinh Dưỡng)</span>
+          <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold">Hoàn tất &lt; 30s</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <select onchange="selectedMealTime = this.value" class="col-span-1 px-2 py-2 rounded-xl border border-slate-300 font-bold">
+            <option value="Bữa sáng" ${selectedMealTime === 'Bữa sáng' ? 'selected' : ''}>Bữa sáng</option>
+            <option value="Bữa trưa" ${selectedMealTime === 'Bữa trưa' ? 'selected' : ''}>Bữa trưa</option>
+            <option value="Bữa tối" ${selectedMealTime === 'Bữa tối' ? 'selected' : ''}>Bữa tối</option>
+            <option value="Bữa phụ" ${selectedMealTime === 'Bữa phụ' ? 'selected' : ''}>Bữa phụ</option>
+          </select>
+          <select onchange="actionSelectFood(this.value)" class="col-span-2 px-2 py-2 rounded-xl border border-slate-300 font-bold">
+            ${state.vnFoodDatabase.map(f => `<option value="${f.id}" ${f.id === selectedFoodId ? 'selected' : ''}>${f.name}</option>`).join('')}
+          </select>
+        </div>
+
+        <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-emerald-900">Chỉnh nhanh khẩu phần (1-chạm):</span>
+            <span class="text-sm font-black text-emerald-700">${portionObj.cal} kcal</span>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            ${foodObj.portions.map((p, idx) => `
+              <button onclick="actionSelectPortion(${idx})" class="w-full text-left px-2.5 py-1.5 rounded-lg font-bold border transition ${idx === selectedPortionIdx ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-700 border-slate-200'}">
+                ${idx === selectedPortionIdx ? '✓ ' : ''}${p.label}
+              </button>
+            `).join('')}
+          </div>
+          <div class="grid grid-cols-3 gap-1.5 text-center pt-1">
+            <div class="p-1.5 rounded bg-white border border-emerald-200">Đạm: <b>${portionObj.p}g</b></div>
+            <div class="p-1.5 rounded bg-white border border-emerald-200">Carb: <b>${portionObj.c}g</b></div>
+            <div class="p-1.5 rounded bg-white border border-emerald-200">Béo: <b>${portionObj.f}g</b></div>
+          </div>
+          <button onclick="actionAddSelectedFoodToDiary()" class="w-full py-2 rounded-xl bg-emerald-600 text-white font-extrabold shadow-sm">
+            + Lưu vào ${selectedMealTime}
+          </button>
+        </div>
+      </div>
+
+      <!-- Today's Logged Meals -->
+      <div class="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2 text-xs">
+        <div class="flex justify-between items-center">
+          <span class="font-extrabold text-slate-900">Nhật ký hôm nay (${totals.cal}/${u.targetCalorie} kcal)</span>
+        </div>
+        <div class="space-y-2">
+          ${state.foodLogsToday.map(log => `
+            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex justify-between items-center gap-2">
+              <div class="min-w-0">
+                <p class="font-bold text-slate-900 truncate">${log.name}</p>
+                <p class="text-slate-500">${log.mealType} (${log.time}) · P:${log.p}g C:${log.c}g F:${log.f}g</p>
+              </div>
+              <div class="text-right shrink-0">
+                <p class="font-black text-emerald-600">${log.cal}</p>
+                <button onclick="actionRemoveFoodLog('${log.id}')" class="text-rose-600 hover:underline">Xóa</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  } else if (tab === 'plan') {
+    const dayObj = state.weeklyPlan.days[activePlanDayIdx] || state.weeklyPlan.days[0];
+    viewport.innerHTML = `
+      <!-- Auto-adjusted Weekly Plan Banner (UC-07 / REQ-05 - Survey 4.14/5) -->
+      <div class="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2.5 text-xs">
+        <div class="flex justify-between items-center">
+          <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">Tuân thủ ${state.weeklyPlan.complianceRate}%</span>
+          <button onclick="actionTriggerWeeklyRecalculation()" class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold">
+            🔄 Tự tính lại Tuần mới
+          </button>
+        </div>
+        <h3 class="text-sm font-extrabold text-slate-900">${state.weeklyPlan.version}</h3>
+        <p class="text-slate-600 leading-relaxed">${state.weeklyPlan.adjustmentReason}</p>
+
+        <!-- Day Selector Pills -->
+        <div class="flex gap-1.5 overflow-x-auto no-scrollbar pt-1">
+          ${state.weeklyPlan.days.map((d, idx) => `
+            <button onclick="activePlanDayIdx = ${idx}; renderUserView();" class="px-3 py-1.5 rounded-xl font-bold shrink-0 border ${idx === activePlanDayIdx ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-50 text-slate-700 border-slate-200'}">
+              ${d.day}
+            </button>
+          `).join('')}
+        </div>
+
+        <!-- Exercise Checklist -->
+        <div class="space-y-2 pt-1">
+          ${dayObj.exercises.map((ex, exIdx) => `
+            <label class="p-2.5 rounded-xl border ${ex.done ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'} flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" ${ex.done ? 'checked' : ''} onchange="actionToggleExercise(${activePlanDayIdx}, ${exIdx})" class="mt-0.5 w-4 h-4 accent-emerald-600 shrink-0" />
+              <div class="min-w-0">
+                <p class="font-bold ${ex.done ? 'line-through text-slate-500' : 'text-slate-900'}">${ex.name}</p>
+                <p class="text-slate-500 mt-0.5">${ex.sets} · Nghỉ ${ex.rest} · <i>${ex.note}</i></p>
+              </div>
+            </label>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- Body Photo AI Progress Analysis (Release 3.0 - FE-6 / UC-12) -->
+      <div class="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2.5 text-xs">
+        <div class="flex justify-between items-center">
+          <span class="font-extrabold text-indigo-700">📸 AI Phân tích Hình thể (FE-6 · R3.0)</span>
+          <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-700 font-bold">
+            ${state.privacySharing.shareBodyPhotos ? 'PT được xem' : '🔒 Khóa với PT'}
+          </span>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          ${state.bodyPhotos.map(bp => `
+            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+              <p class="font-bold text-slate-900">${bp.date}</p>
+              <p class="text-emerald-700 font-bold">Eo: ${bp.waistEst} · Mỡ: ${bp.bodyFatEst}</p>
+              <p class="text-slate-500">${bp.postureNote}</p>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  } else if (tab === 'rag') {
+    viewport.innerHTML = `
+      <!-- Medical Disclaimer & 3 Test Scenarios -->
+      <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900">
+        ⚠️ <b>100% Trích dẫn nguồn Admin duyệt (BO-4):</b> Không chẩn đoán y khoa. Tự động lọc chấn thương &amp; chuyển tiếp PT.
+      </div>
+
+      <div class="flex gap-1.5 overflow-x-auto no-scrollbar">
+        <button onclick="actionSendRagPreset('normal_dinner')" class="px-2.5 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 text-xs font-bold shrink-0">
+          1. Hỏi ăn tối món Việt
+        </button>
+        <button onclick="actionSendRagPreset('injury_knee')" class="px-2.5 py-1.5 rounded-xl bg-rose-100 text-rose-700 text-xs font-bold shrink-0">
+          2. Báo đau sưng khớp gối
+        </button>
+        <button onclick="actionSendRagPreset('out_of_scope')" class="px-2.5 py-1.5 rounded-xl bg-slate-200 text-slate-700 text-xs font-bold shrink-0">
+          3. Hỏi thuốc giảm cân
+        </button>
+      </div>
+
+      <!-- Chat Messages -->
+      <div class="space-y-2.5 text-xs">
+        ${state.ragConversation.map(msg => {
+          if (msg.sender === 'user') {
+            return `
+              <div class="p-2.5 rounded-2xl bg-emerald-600 text-white ml-8">
+                <p class="font-bold text-emerald-100 mb-0.5">Bạn · ${msg.time}</p>
+                <p>${msg.text}</p>
+              </div>
+            `;
+          } else {
+            return `
+              <div class="p-3 rounded-2xl ${msg.isSafetyAlert ? 'bg-rose-50 border-2 border-rose-300' : 'bg-white border border-slate-200'} mr-4 space-y-2 shadow-sm">
+                <p class="font-extrabold ${msg.isSafetyAlert ? 'text-rose-700' : 'text-emerald-700'}">
+                  ${msg.isSafetyAlert ? '🛑 Cảnh báo An toàn & Chặn Tự tập (UC-10)' : '🤖 FitMate RAG Tư vấn'}
+                </p>
+                <p class="text-slate-800 leading-relaxed">${msg.text}</p>
+                <div class="p-2 rounded-lg bg-slate-100 border border-slate-200 font-bold text-slate-700">
+                  📚 [${msg.citation}] ✓
+                </div>
+                ${msg.isSafetyAlert ? `
+                  <button onclick="switchUserTab('sessions')" class="w-full py-2 rounded-xl bg-rose-600 text-white font-bold">
+                    👨‍⚕️ Chuyển ca cho HLV Hoàng Nam duyệt
+                  </button>
+                ` : ''}
+              </div>
+            `;
+          }
+        }).join('')}
+      </div>
+
+      <!-- Input -->
+      <div class="flex gap-1.5 pt-1">
+        <input type="text" id="rag-custom-input" placeholder="Hỏi về calo món Việt, bài tập..." class="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white" />
+        <button onclick="actionSendCustomRag()" class="px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold">Gửi</button>
+      </div>
+    `;
+  } else if (tab === 'marketplace') {
+    viewport.innerHTML = `
+      <div class="flex items-center justify-between text-xs">
+        <span class="font-extrabold text-slate-800">🏋️ Sàn PT Freelancer (FE-7)</span>
+        <button onclick="switchUserTab('sessions')" class="px-2.5 py-1 rounded-lg bg-sky-600 text-white font-bold">
+          Mở Hợp đồng Escrow đang học →
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        ${state.ptList.map(pt => `
+          <div class="p-3.5 rounded-2xl bg-white border ${pt.verifiedStatus === 'VERIFIED' ? 'border-emerald-200' : 'border-slate-200'} shadow-sm space-y-2">
+            <div class="flex justify-between items-start gap-2">
+              <div>
+                <h3 class="text-sm font-extrabold text-slate-900">${pt.name}</h3>
+                <p class="text-slate-500">📍 ${pt.location} · ${pt.expYears} năm KN</p>
+              </div>
+              <span class="px-2 py-0.5 rounded-full font-bold shrink-0 ${pt.verifiedStatus === 'VERIFIED' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'}">
+                ${pt.verifiedStatus === 'VERIFIED' ? '✓ Đã xác minh CC' : '⏳ Chưa xác minh'}
+              </span>
+            </div>
+            <p class="font-bold text-amber-600">⭐ ${pt.rating} (${pt.reviewCount} đánh giá học viên cũ – Q15: 4,19/5)</p>
+            <p class="text-slate-600">${pt.bio}</p>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-200 flex justify-between items-center">
+              <span class="font-bold">Gói ${pt.packageSessions} buổi (${pt.pricePerSession.toLocaleString('vi-VN')}đ/buổi)</span>
+              <span class="text-sm font-black text-emerald-600">${pt.packageTotal.toLocaleString('vi-VN')}đ</span>
+            </div>
+            <button onclick="actionBookPtPackage('${pt.id}')" class="w-full py-2 rounded-xl ${pt.id === state.activeEscrowContract.ptId ? 'bg-sky-600 text-white' : 'bg-emerald-600 text-white'} font-extrabold">
+              ${pt.id === state.activeEscrowContract.ptId ? '✓ Đang học gói này (Xem Lịch & Escrow)' : '🛡️ Mua khóa 1-1 (Giữ tiền Escrow)'}
+            </button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } else if (tab === 'sessions') {
+    const c = state.activeEscrowContract;
+    viewport.innerHTML = `
+      <!-- Escrow Contract Status -->
+      <div class="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2.5 text-xs">
+        <div class="flex justify-between items-center">
+          <span class="font-extrabold text-sky-700">🛡️ Ví Giữ tiền Trung gian (${c.contractId})</span>
+          <button onclick="switchUserTab('marketplace')" class="text-slate-500 underline">← Sàn PT</button>
+        </div>
+        <p class="font-bold text-slate-900">${c.packageName}</p>
+        <div class="grid grid-cols-2 gap-2 text-center">
+          <div class="p-2 rounded-xl bg-emerald-50 border border-emerald-200">
+            <span class="text-emerald-800">Đã giải ngân (${c.completedSessions}/12)</span>
+            <p class="text-sm font-black text-emerald-600">${c.releasedAmount.toLocaleString('vi-VN')}đ</p>
+          </div>
+          <div class="p-2 rounded-xl bg-sky-50 border border-sky-200">
+            <span class="text-sky-800">Đang giữ an toàn</span>
+            <p class="text-sm font-black text-sky-600">${c.heldAmount.toLocaleString('vi-VN')}đ</p>
+          </div>
+        </div>
+        <p class="text-slate-500">Quy tắc <code>BR-11</code>: Hủy/dời trước &ge; 12h được bảo lưu 100% buổi tập.</p>
+
+        <div class="space-y-2 pt-1">
+          ${c.sessions.slice(3).map(s => `
+            <div class="p-2.5 rounded-xl border ${s.status === 'COMPLETED_PAID' ? 'bg-slate-50 border-slate-200' : 'bg-sky-50/50 border-sky-200'} space-y-1.5">
+              <div class="flex justify-between items-start">
+                <span class="font-bold text-slate-900">Buổi ${s.no}: ${s.topic}</span>
+              </div>
+              <p class="text-slate-500">🕒 ${s.date}</p>
+              ${s.status === 'COMPLETED_PAID' ? `
+                <span class="inline-block px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold">✓ Đã hoàn thành &amp; Giải ngân 300k</span>
+              ` : `
+                <div class="flex gap-1.5 pt-1">
+                  <button onclick="actionCompleteEscrowSession('${s.id}')" class="flex-1 py-1.5 rounded-lg bg-emerald-600 text-white font-bold">
+                    ✓ Xác nhận HT (Giải ngân)
+                  </button>
+                  <button onclick="actionRescheduleSession('${s.id}')" class="px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-bold">
+                    Dời lịch (&ge;12h)
+                  </button>
+                </div>
+              `}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- In-App Chat with PT (FE-8) -->
+      <div class="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2.5 text-xs">
+        <p class="font-extrabold text-slate-900">💬 Chat In-App với ${c.ptName} (FE-8)</p>
+        <div class="space-y-2 max-h-48 overflow-y-auto p-2 rounded-xl bg-slate-50 border border-slate-200">
+          ${state.ptChatMessages.map(m => `
+            <div class="p-2 rounded-xl ${m.sender === 'user' ? 'bg-emerald-600 text-white ml-6' : 'bg-white border border-slate-200 text-slate-800 mr-6'}">
+              <p class="font-bold opacity-80">${m.name} · ${m.time}</p>
+              <p>${m.text}</p>
+            </div>
+          `).join('')}
+        </div>
+        <div class="flex gap-1.5">
+          <input type="text" id="user-pt-chat-inp" placeholder="Nhắn tin cho HLV..." class="flex-1 px-3 py-2 rounded-xl border border-slate-300" />
+          <button onclick="actionSendPtChat('user')" class="px-3.5 py-2 rounded-xl bg-emerald-600 text-white font-bold">Gửi</button>
+        </div>
+      </div>
+    `;
+  } else if (tab === 'privacy') {
+    const p = state.privacySharing;
+    viewport.innerHTML = `
+      <div class="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3 text-xs">
+        <div class="flex justify-between items-center">
+          <span class="font-extrabold text-rose-600">🔒 Phân quyền Chia sẻ với PT (UC-04)</span>
+          <button onclick="actionRevokeAllPtPermissions()" class="px-2.5 py-1 rounded-lg bg-rose-600 text-white font-bold">
+            Ngắt tất cả
+          </button>
+        </div>
+        <p class="text-slate-500">Bật/tắt tại đây sẽ khóa/mở trực tiếp dữ liệu trên <b>PT Mobile App</b> của ${p.assignedPtName}:</p>
+
+        <label class="flex items-center justify-between py-2 border-b border-slate-100">
+          <span class="font-semibold">1. Cân nặng &amp; Chỉ số BMR/TDEE</span>
+          <input type="checkbox" ${p.shareWeightAndMacros ? 'checked' : ''} onchange="actionTogglePrivacy('shareWeightAndMacros', this.checked)" class="w-4 h-4 accent-emerald-600" />
+        </label>
+        <label class="flex items-center justify-between py-2 border-b border-slate-100">
+          <span class="font-semibold">2. Nhật ký Bữa ăn hằng ngày</span>
+          <input type="checkbox" ${p.shareFoodLog ? 'checked' : ''} onchange="actionTogglePrivacy('shareFoodLog', this.checked)" class="w-4 h-4 accent-emerald-600" />
+        </label>
+        <label class="flex items-center justify-between py-2 border-b border-slate-100">
+          <span class="font-semibold">3. Bước chân, Nhịp tim &amp; Giấc ngủ</span>
+          <input type="checkbox" ${p.shareWorkoutAndSteps ? 'checked' : ''} onchange="actionTogglePrivacy('shareWorkoutAndSteps', this.checked)" class="w-4 h-4 accent-emerald-600" />
+        </label>
+        <label class="flex items-center justify-between py-2 border-b border-slate-100 text-rose-700 font-bold">
+          <span>4. Ảnh cơ thể định kỳ (Body Photos)</span>
+          <input type="checkbox" ${p.shareBodyPhotos ? 'checked' : ''} onchange="actionTogglePrivacy('shareBodyPhotos', this.checked)" class="w-4 h-4 accent-rose-600" />
+        </label>
+        <label class="flex items-center justify-between py-2 text-rose-700 font-bold">
+          <span>5. Vị trí GPS thời gian thực</span>
+          <input type="checkbox" ${p.shareGpsLocation ? 'checked' : ''} onchange="actionTogglePrivacy('shareGpsLocation', this.checked)" class="w-4 h-4 accent-rose-600" />
+        </label>
+      </div>
+
+      <!-- Decree 356/2025/NĐ-CP Legal SLA Box -->
+      <div class="p-3.5 rounded-2xl bg-slate-900 text-white space-y-2 text-xs">
+        <p class="font-bold text-emerald-400">⚖️ Tuân thủ Nghị định 356/2025/NĐ-CP (Mục 2.4 A1):</p>
+        <p class="text-slate-300">• Rút đồng ý: Phản hồi &le; 2 ngày làm việc, thực hiện &le; 15 ngày.<br/>• Xóa dữ liệu nhạy cảm: Hoàn tất trong &le; 20 ngày.</p>
+        <button onclick="actionRequestDeleteAccountData()" class="w-full py-2 rounded-xl bg-rose-600 text-white font-extrabold">
+          ${p.deletionRequestStatus ? '⏳ Đã gửi yêu cầu xóa (#DEL-2026)' : '🗑️ Yêu cầu Xóa Toàn bộ Dữ liệu (SLA 20 ngày)'}
+        </button>
+      </div>
+    `;
+  }
+}
+
+// ============================================================================
+// 2. RENDER PT APP (NATIVE MOBILE APP FOR FREELANCE TRAINERS - BẢNG 5.6)
+// ============================================================================
+const ptFlowMeta = {
+  students: { title: 'Dashboard Học viên', icon: '👥', uc: 'UC-16 (REQ-10)' },
+  schedule: { title: 'Lịch hẹn & Hủy <12h', icon: '📅', uc: 'UC-15 (REQ-12)' },
+  chat: { title: 'Chat & Duyệt AI RAG', icon: '💬', uc: 'UC-11 (FE-8)' },
+  wallet: { title: 'Ví Escrow & Hoa hồng', icon: '💰', uc: 'REQ-14 (12%)' },
+  profile: { title: 'Hồ sơ Chứng chỉ & Gói', icon: '🎓', uc: 'UC-13 (REQ-13)' }
+};
+
+function renderPtView() {
+  const tab = state.currentPtTab;
+  const p = state.privacySharing;
+
+  // Update 5 bottom tabs of PT Mobile App
+  Object.keys(ptFlowMeta).forEach(k => {
+    const btn = document.getElementById('pt-bnav-' + k);
+    if (!btn) return;
+    const isAct = k === tab;
+    btn.className = `flex flex-col items-center justify-center py-1 rounded-xl transition ${isAct ? 'text-sky-600 font-extrabold bg-sky-50' : 'text-slate-500 font-medium'}`;
+  });
+
+  // Update desktop quick jumper for PT App
+  const jumper = document.getElementById('pt-flow-jumper');
+  if (jumper) {
+    jumper.innerHTML = Object.keys(ptFlowMeta).map(k => {
+      const m = ptFlowMeta[k];
+      const act = k === tab;
+      return `
+        <button onclick="switchPtTab('${k}')" class="p-2 rounded-xl border text-left transition ${act ? 'bg-sky-600 text-white border-sky-600 font-bold' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}">
+          <div class="text-xs truncate">${m.icon} ${m.title}</div>
+          <div class="text-xs opacity-75">${m.uc}</div>
+        </button>
+      `;
+    }).join('');
+  }
+
+  // Synchronize live permissions from User App
+  const minhAnhPerms = [];
+  const minhAnhLocked = [];
+  if (p.shareWeightAndMacros) minhAnhPerms.push('Cân nặng & Macro'); else minhAnhLocked.push('Cân nặng & Macro');
+  if (p.shareFoodLog) minhAnhPerms.push('Nhật ký ăn'); else minhAnhLocked.push('Nhật ký ăn');
+  if (p.shareWorkoutAndSteps) minhAnhPerms.push('Bước chân & Ngủ'); else minhAnhLocked.push('Bước chân & Ngủ');
+  if (p.shareBodyPhotos) minhAnhPerms.push('Ảnh body'); else minhAnhLocked.push('Ảnh body');
+  minhAnhLocked.push('GPS');
+  state.ptStudents[0].sharedPermissions = minhAnhPerms;
+  state.ptStudents[0].lockedPermissions = minhAnhLocked;
+
+  const viewport = document.getElementById('pt-mobile-viewport');
+
+  if (tab === 'students') {
+    viewport.innerHTML = `
+      <!-- KPI Summary Bar on PT Mobile App -->
+      <div class="grid grid-cols-3 gap-2 text-center text-xs">
+        <div class="p-2.5 rounded-2xl bg-white border border-slate-200 shadow-sm">
+          <p class="text-slate-500">Đang kèm</p>
+          <p class="text-sm font-black text-slate-900">12 HV</p>
+        </div>
+        <div class="p-2.5 rounded-2xl bg-rose-50 border border-rose-200 shadow-sm">
+          <p class="text-rose-700 font-bold">Bỏ nhật ký</p>
+          <p class="text-sm font-black text-rose-600">1 HV (3 ngày)</p>
+        </div>
+        <div class="p-2.5 rounded-2xl bg-amber-50 border border-amber-200 shadow-sm">
+          <p class="text-amber-800 font-bold">Ca AI chuyển</p>
+          <p class="text-sm font-black text-amber-600">1 ca đau gối</p>
+        </div>
+      </div>
+
+      <!-- Student Cards (Solves PV-PT01 manual Zalo reminders) -->
+      <div class="space-y-3 text-xs">
+        ${state.ptStudents.map(st => `
+          <div class="p-3.5 rounded-2xl bg-white border ${st.statusBadge === 'MISSED_LOGS' ? 'border-rose-300' : st.statusBadge === 'AI_ESCALATED' ? 'border-amber-300' : 'border-slate-200'} shadow-sm space-y-2">
+            <div class="flex justify-between items-start gap-2">
+              <div>
+                <p class="text-sm font-extrabold text-slate-900">${st.name}</p>
+                <p class="text-slate-500">${st.goal} · ${st.currentWeight}</p>
+              </div>
+              <span class="px-2 py-0.5 rounded-full font-bold shrink-0 ${st.statusBadge === 'MISSED_LOGS' ? 'bg-rose-100 text-rose-700' : st.statusBadge === 'AI_ESCALATED' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-700'}">
+                ${st.statusBadge === 'MISSED_LOGS' ? '⚠️ Bỏ log 3 ngày' : st.statusBadge === 'AI_ESCALATED' ? '🩺 AI chuyển ca' : '✓ Tuân thủ ' + st.compliance + '%'}
+              </span>
+            </div>
+
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-700">
+              ${st.id === 'STU-01' && !p.shareFoodLog ? '<b class="text-rose-600">🔒 Học viên vừa tắt quyền xem Nhật ký bữa ăn</b>' : st.todaySummary}
+            </div>
+
+            <div class="flex flex-wrap gap-1">
+              ${st.sharedPermissions.map(pm => `<span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">✓ ${pm}</span>`).join('')}
+              ${st.lockedPermissions.map(lk => `<span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">🔒 ${lk}</span>`).join('')}
+            </div>
+
+            <div class="flex gap-1.5 pt-1">
+              ${st.statusBadge === 'MISSED_LOGS' ? `
+                <button onclick="showToast('Đã gửi thông báo đẩy nhắc học viên ${st.name} ghi nhật ký!', 'info')" class="flex-1 py-2 rounded-xl bg-rose-600 text-white font-bold">
+                  📲 Nhắc 1-chạm (Thay Zalo)
+                </button>
+              ` : ''}
+              ${st.statusBadge === 'AI_ESCALATED' ? `
+                <button onclick="actionPtApproveEscalatedPlan('${st.id}')" class="flex-1 py-2 rounded-xl bg-amber-600 text-white font-bold">
+                  ✓ Duyệt đổi sang Glute Bridge
+                </button>
+              ` : ''}
+              <button onclick="switchPtTab('chat')" class="flex-1 py-2 rounded-xl bg-sky-600 text-white font-bold">
+                💬 Chat &amp; Giáo án
+              </button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } else if (tab === 'schedule') {
+    viewport.innerHTML = `
+      <div class="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3 text-xs">
+        <span class="font-extrabold text-sky-700 uppercase">UC-15 · Lịch dạy Hôm nay &amp; Quy tắc Hủy &lt;12h</span>
+
+        <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 space-y-1">
+          <div class="flex justify-between font-bold text-emerald-950">
+            <span>18:00 · Buổi 5/12 – Lê Minh Anh</span>
+            <span class="text-emerald-700">264.000đ</span>
+          </div>
+          <p class="text-slate-600">Thân trên &amp; Kiểm tra khớp gối · Giải ngân tự động sau buổi tập</p>
+        </div>
+
+        <div class="p-3 rounded-xl bg-amber-50 border border-amber-300 space-y-2">
+          <div class="flex justify-between font-bold text-amber-950">
+            <span>19:30 · Buổi 3/10 – Nguyễn Hoàng Long</span>
+            <span class="text-rose-600">Hủy sát giờ (&lt;4h)</span>
+          </div>
+          <p class="text-amber-900">Học viên báo hủy lúc 15:45 (vi phạm mốc &ge; 12h theo <code>BR-11</code>). Quyền quyết định của PT:</p>
+          <div class="flex gap-1.5">
+            <button onclick="showToast('Đã hỗ trợ miễn phạt 1 lần và dời lịch sang Thứ Sáu!', 'success')" class="flex-1 py-2 rounded-lg bg-emerald-600 text-white font-bold">
+              Dời lịch (Miễn phạt)
+            </button>
+            <button onclick="showToast('Đã tính buổi tập theo quy tắc hủy sát giờ <12h.', 'warning')" class="flex-1 py-2 rounded-lg bg-slate-900 text-white font-bold">
+              Tính buổi (&lt;12h)
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  } else if (tab === 'chat') {
+    viewport.innerHTML = `
+      <div class="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3 text-xs">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+          <span class="font-extrabold text-slate-900">💬 Chat với Học viên Lê Minh Anh</span>
+          <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold">Gắn với Kế hoạch Tuần 4</span>
+        </div>
+
+        <div class="space-y-2 max-h-80 overflow-y-auto p-2 rounded-xl bg-slate-50 border border-slate-200">
+          ${state.ptChatMessages.map(m => `
+            <div class="p-2.5 rounded-xl ${m.sender === 'pt' ? 'bg-sky-600 text-white ml-6' : 'bg-white border border-slate-200 text-slate-800 mr-6'}">
+              <p class="font-bold opacity-80 mb-0.5">${m.name} · ${m.time}</p>
+              <p>${m.text}</p>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="flex gap-1.5">
+          <input type="text" id="pt-reply-inp" placeholder="Gửi lời khuyên / chỉnh giáo án..." class="flex-1 px-3 py-2 rounded-xl border border-slate-300" />
+          <button onclick="actionSendPtChat('pt')" class="px-3.5 py-2 rounded-xl bg-sky-600 text-white font-bold">Gửi</button>
+        </div>
+      </div>
+    `;
+  } else if (tab === 'wallet') {
+    const c = state.activeEscrowContract;
+    const netReceived = Math.round(c.releasedAmount * 0.88);
+    viewport.innerHTML = `
+      <div class="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3 text-xs">
+        <span class="font-extrabold text-emerald-700 uppercase">REQ-12 &amp; REQ-14 · Ví Thu nhập &amp; Escrow</span>
+        <div class="p-3.5 rounded-2xl bg-slate-900 text-white space-y-1">
+          <p class="text-slate-400">Đã giải ngân từ gói Lê Minh Anh (Sau phí 12%)</p>
+          <p class="text-2xl font-black text-emerald-400">${netReceived.toLocaleString('vi-VN')}đ</p>
+          <p class="text-slate-300">Đã hoàn thành ${c.completedSessions}/${c.totalSessions} buổi · Đang giữ Escrow: <b>${c.heldAmount.toLocaleString('vi-VN')}đ</b></p>
+        </div>
+        <div class="p-3 rounded-xl bg-sky-50 border border-sky-200 space-y-1 text-slate-700">
+          <p class="font-bold text-sky-900">📌 Chính sách Bảo vệ PT Freelancer (PV-PT01 câu 7):</p>
+          <p>• Hoa hồng nền tảng minh bạch: <b>12%</b> (nằm trong mức 10–15% PT chấp nhận).</p>
+          <p>• Học viên cũ PT tự mang lên app: Phí quản lý chỉ <b>5%</b>, không ràng buộc độc quyền.</p>
+        </div>
+      </div>
+    `;
+  } else if (tab === 'profile') {
+    viewport.innerHTML = `
+      <div class="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3 text-xs">
+        <span class="font-extrabold text-sky-700 uppercase">UC-13 · Hồ sơ Chứng chỉ &amp; Gói tập 1-1</span>
+        <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 space-y-1">
+          <p class="font-bold text-emerald-900">Trạng thái: Mức 2 – Đã xác minh Chứng chỉ ✓</p>
+          <p class="text-slate-600">Chứng chỉ đã duyệt: NASM-CPT Quốc tế, Dinh dưỡng Thể thao VBF.</p>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+          <p class="font-bold text-slate-900">Gói đang mở bán: Kèm 1-1 Giảm mỡ &amp; Phục hồi (12 buổi)</p>
+          <p class="text-emerald-700 font-bold">Giá: 3.600.000đ (300.000đ / buổi · Giải ngân từng buổi)</p>
+        </div>
+      </div>
+    `;
+  }
+}
+
+// ============================================================================
+// 3. RENDER ADMIN WEB (RESPONSIVE DESKTOP & MOBILE WEB PORTAL - BẢNG 5.6)
+// ============================================================================
+function renderAdminView() {
+  const adminTabs = [
+    { id: 'rag_kb', icon: '📚', label: 'Kho Tài liệu RAG (BO-4)', badge: state.ragDocuments.length },
+    { id: 'pt_verify', icon: '🎓', label: 'Duyệt Chứng chỉ PT (XĐ7)', badge: state.ptList.filter(p => p.verifiedStatus !== 'VERIFIED').length },
+    { id: 'disputes', icon: '⚖️', label: 'Khiếu nại Escrow & Log AI', badge: state.adminDisputes.filter(d => d.status === 'OPEN').length }
+  ];
+
+  const nav = document.getElementById('admin-sidebar-nav');
+  if (nav) {
+    nav.innerHTML = adminTabs.map(t => {
+      const act = state.currentAdminTab === t.id;
+      return `
+        <button onclick="switchAdminTab('${t.id}')" class="px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-between gap-2 shrink-0 ${act ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'}">
+          <span>${t.icon} ${t.label}</span>
+          <span class="px-2 py-0.5 rounded-full text-xs ${act ? 'bg-indigo-800 text-white' : 'bg-slate-200 text-slate-700'}">${t.badge}</span>
+        </button>
+      `;
+    }).join('');
+  }
+
+  const box = document.getElementById('admin-main-content');
+  if (!box) return;
+
+  if (state.currentAdminTab === 'rag_kb') {
+    box.innerHTML = `
+      <!-- Top KPI Cards of Admin Web -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <p class="text-xs text-slate-500 font-semibold">Tài liệu RAG Đã duyệt (BO-4)</p>
+          <p class="text-2xl font-black text-emerald-600 mt-1">${state.ragDocuments.filter(d => d.status === 'APPROVED').length} / ${state.ragDocuments.length} bộ</p>
+          <p class="text-xs text-slate-500 mt-0.5">100% câu trả lời Chatbot có trích dẫn nguồn</p>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <p class="text-xs text-slate-500 font-semibold">PT Đã xác minh Chứng chỉ (SC-4)</p>
+          <p class="text-2xl font-black text-sky-600 mt-1">${state.ptList.filter(p => p.verifiedStatus === 'VERIFIED').length} / ${state.ptList.length} HLV</p>
+          <p class="text-xs text-slate-500 mt-0.5">Cơ chế duyệt 2 mức giải quyết XĐ7</p>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <p class="text-xs text-slate-500 font-semibold">Hợp đồng Giữ tiền Trung gian (Escrow)</p>
+          <p class="text-2xl font-black text-indigo-600 mt-1">${state.activeEscrowContract.heldAmount.toLocaleString('vi-VN')}đ</p>
+          <p class="text-xs text-slate-500 mt-0.5">Đang bảo vệ an toàn theo từng buổi tập</p>
+        </div>
+      </div>
+
+      <!-- RAG Knowledge Base Table -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+          <div>
+            <span class="text-xs font-bold uppercase text-indigo-600">UC-18 · FE-9 · REQ-03, REQ-15 (Quản trị Kho Tài liệu Chuyên môn RAG)</span>
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900 mt-0.5">Danh sách Tài liệu Dinh dưỡng &amp; Y học Thể thao</h3>
+          </div>
+          <button onclick="actionAdminAddRagDoc()" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 shrink-0">
+            + Tải lên Tài liệu Mới
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="border-b border-slate-200 text-slate-500">
+                <th class="py-2.5 pr-3">Mã TL</th>
+                <th class="py-2.5 pr-3">Tên Tài liệu &amp; Người kiểm duyệt</th>
+                <th class="py-2.5 pr-3">Phân loại</th>
+                <th class="py-2.5 pr-3">Vector Chunks</th>
+                <th class="py-2.5 pr-3">Trạng thái</th>
+                <th class="py-2.5">Thao tác Admin</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+              ${state.ragDocuments.map(doc => `
+                <tr>
+                  <td class="py-3 pr-3 font-extrabold text-indigo-600">${doc.id}</td>
+                  <td class="py-3 pr-3 font-bold text-slate-900">${doc.title}<br/><span class="text-xs font-normal text-slate-500">${doc.approvedBy}</span></td>
+                  <td class="py-3 pr-3 text-slate-600">${doc.category} (${doc.version})</td>
+                  <td class="py-3 pr-3 font-semibold">${doc.chunks} chunks</td>
+                  <td class="py-3 pr-3">
+                    <span class="px-2.5 py-1 rounded-full text-xs font-bold ${doc.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'}">
+                      ${doc.status === 'APPROVED' ? '✓ Đã duyệt (Active)' : '⏳ Chờ duyệt Vector'}
+                    </span>
+                  </td>
+                  <td class="py-3">
+                    ${doc.status === 'PENDING' ? `
+                      <button onclick="actionAdminApproveDoc('${doc.id}')" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700">
+                        ✓ Duyệt &amp; Index Vector
+                      </button>
+                    ` : `<span class="text-xs text-slate-400">Đang phục vụ RAG</span>`}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  } else if (state.currentAdminTab === 'pt_verify') {
+    box.innerHTML = `
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+        <span class="text-xs font-bold uppercase text-indigo-600">UC-13 &amp; UC-18 · REQ-13 · Cơ chế Duyệt PT 2 Mức (Giải quyết Xung đột XĐ7)</span>
+        <h3 class="text-lg font-extrabold text-slate-900">🎓 Kiểm duyệt Chứng chỉ Huấn luyện viên Freelancer</h3>
+        <p class="text-xs text-slate-500">Khi Admin bấm duyệt cấp huy hiệu ở đây, trên <b>User Mobile App</b> (Tab Thuê PT), hồ sơ của HLV Đặng Tuấn Kiệt sẽ lập tức lên nhãn xanh <b>"✓ Đã xác minh CC"</b>.</p>
+
+        <div class="space-y-3">
+          ${state.ptList.map(pt => `
+            <div class="p-4 rounded-2xl border ${pt.verifiedStatus === 'VERIFIED' ? 'border-slate-200 bg-slate-50' : 'border-amber-300 bg-amber-50/50'} flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs sm:text-sm">
+              <div>
+                <p class="font-bold text-slate-900">${pt.name} (${pt.location} · ${pt.expYears} năm KN)</p>
+                <p class="text-xs text-slate-600 mt-0.5">Chứng chỉ đính kèm: <b>${pt.certificates.join(', ')}</b></p>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold ${pt.verifiedStatus === 'VERIFIED' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'}">
+                  ${pt.verifiedStatus === 'VERIFIED' ? 'Mức 2: Đã xác minh ✓' : 'Mức 1: Chưa xác minh'}
+                </span>
+                ${pt.verifiedStatus !== 'VERIFIED' ? `
+                  <button onclick="actionAdminVerifyPt('${pt.id}')" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700">
+                    ✓ Cấp Huy hiệu Xác minh
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  } else if (state.currentAdminTab === 'disputes') {
+    box.innerHTML = `
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+        <span class="text-xs font-bold uppercase text-rose-600">UC-17 &amp; UC-18 · REQ-12, REQ-15 · Trọng tài Tranh chấp Giữ tiền Trung gian (Escrow)</span>
+        <h3 class="text-lg font-extrabold text-slate-900">⚖️ Xử lý Khiếu nại Khóa tập &amp; Giám sát An toàn Chatbot</h3>
+
+        <div class="space-y-3">
+          ${state.adminDisputes.map(d => `
+            <div class="p-4 rounded-2xl border border-rose-200 bg-rose-50/40 space-y-2.5 text-xs sm:text-sm">
+              <div class="flex flex-wrap justify-between items-center gap-2">
+                <span class="font-bold text-rose-700">Mã khiếu nại: ${d.id} · Ngày tạo: ${d.createdAt}</span>
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold ${d.status === 'OPEN' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}">
+                  ${d.status === 'OPEN' ? 'Đang đóng băng ' + d.heldAmount.toLocaleString('vi-VN') + 'đ' : '✓ Đã hoàn tiền 2.100.000đ cho Học viên'}
+                </span>
+              </div>
+              <p class="font-bold text-slate-900">${d.studentName} ↔ ${d.ptName} (${d.packageInfo})</p>
+              <p class="text-slate-700"><b>Lý do:</b> ${d.reason}</p>
+              <p class="text-slate-600 bg-white p-2.5 rounded-xl border border-slate-200">🔍 <b>Bằng chứng Log hệ thống:</b> ${d.evidence}</p>
+              ${d.status === 'OPEN' ? `
+                <button onclick="actionAdminResolveDispute('${d.id}')" class="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700">
+                  ✓ Phê duyệt Hoàn tiền 2.100.000đ (7 buổi chưa học) cho Học viên
+                </button>
+              ` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+}
+
+// ============================================================================
+// SHARED INTERACTIVE ACTIONS
+// ============================================================================
+function actionToggleHealthSync() {
+  state.healthSync.connected = !state.healthSync.connected;
+  if (state.healthSync.connected) {
+    state.healthSync.lastSync = 'Vừa đồng bộ xong';
+    showToast(`Đã kết nối lại ${state.healthSync.provider}!`, 'success');
+  } else {
+    showToast('Đã ngắt kết nối! Hiển thị "Chưa có dữ liệu" theo đúng chính sách bảo mật Apple HealthKit (DEF-01).', 'warning');
+  }
+  renderAll();
+}
+
+function actionAddWater() {
+  state.userProfile.waterMl = Math.min(3500, state.userProfile.waterMl + 250);
+  showToast(`Đã cộng +250ml nước (${state.userProfile.waterMl}ml)!`, 'info');
+  renderUserView();
+}
+
+function actionSaveProfileAndRecalc() {
+  const hVal = parseFloat(document.getElementById('inp-height').value) || 160;
+  const wVal = parseFloat(document.getElementById('inp-weight').value) || 55.8;
+  const gVal = document.getElementById('inp-goal').value;
+  state.userProfile.heightCm = hVal;
+  state.userProfile.weightKg = wVal;
+  state.userProfile.goalType = gVal;
+  recalculateBmrTdee();
+  showToast(`Đã tính lại: BMR = ${state.userProfile.bmr} kcal, TDEE = ${state.userProfile.tdee} kcal, Mục tiêu = ${state.userProfile.targetCalorie} kcal!`, 'success');
+  renderAll();
+}
+
+function actionSelectFood(foodId) {
+  selectedFoodId = foodId;
+  selectedPortionIdx = 0;
+  renderUserView();
+}
+
+function actionSelectPortion(idx) {
+  selectedPortionIdx = idx;
+  renderUserView();
+}
+
+function actionAddSelectedFoodToDiary() {
+  const foodObj = state.vnFoodDatabase.find(f => f.id === selectedFoodId) || state.vnFoodDatabase[0];
+  const portionObj = foodObj.portions[selectedPortionIdx] || foodObj.portions[0];
+  const now = new Date();
+  const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+  state.foodLogsToday.push({
+    id: 'LOG-' + Date.now(),
+    mealType: selectedMealTime,
+    time: timeStr,
+    name: `${foodObj.name} (${portionObj.label})`,
+    portion: foodObj.unit,
+    cal: portionObj.cal,
+    p: portionObj.p,
+    c: portionObj.c,
+    f: portionObj.f,
+    method: 'CSDL Món Việt (<30s)'
+  });
+
+  showToast(`Đã lưu "${foodObj.name}" (+${portionObj.cal} kcal) vào ${selectedMealTime}!`, 'success');
+  renderAll();
+}
+
+function actionSimulateAiFoodCamera() {
+  selectedFoodId = 'VN-01';
+  selectedPortionIdx = 0;
+  showToast('📸 AI Vision nhận diện: "Bún bò Huế (Ít bún - 390 kcal)" trong 2,5 giây!', 'info');
+  renderUserView();
+}
+
+function actionSimulateBarcodeScan() {
+  selectedFoodId = 'VN-06';
+  selectedPortionIdx = 0;
+  showToast('🏷️ Quét mã vạch EAN-13 (8934673100124): Sữa tươi không đường Vinamilk 180ml (110 kcal)!', 'info');
+  renderUserView();
+}
+
+function actionRemoveFoodLog(logId) {
+  state.foodLogsToday = state.foodLogsToday.filter(l => l.id !== logId);
+  showToast('Đã xóa món ăn khỏi nhật ký.', 'warning');
+  renderAll();
+}
+
+function actionToggleExercise(dayIdx, exIdx) {
+  const ex = state.weeklyPlan.days[dayIdx].exercises[exIdx];
+  ex.done = !ex.done;
+  showToast(ex.done ? `✓ Đã hoàn thành: ${ex.name}` : `Đã bỏ đánh dấu: ${ex.name}`, 'success');
+  renderUserView();
+}
+
+function actionTriggerWeeklyRecalculation() {
+  state.weeklyPlan.version = 'Tuần 5 (v5.0 – Vừa tự động điều chỉnh theo tuân thủ 94%)';
+  state.weeklyPlan.complianceRate = 94;
+  state.weeklyPlan.adjustmentReason = 'Dựa trên dữ liệu tuần qua, AI điều chỉnh mục tiêu nạp 1.420 kcal/ngày và tăng 5% mức tạ bài Hip Thrust.';
+  showToast('🔄 Đã tự động tính lại Kế hoạch Tuần 5 (UC-07)!', 'success');
+  renderUserView();
+}
+
+function actionSendRagPreset(preset) {
+  const totals = getTodayNutritionTotals();
+  const remCal = Math.max(0, state.userProfile.targetCalorie - totals.cal);
+
+  if (preset === 'normal_dinner') {
+    state.ragConversation.push({ sender: 'user', time: '10:05', text: `Tối nay mình còn ${remCal} kcal thì ăn món Việt gì ngoài hàng để đủ đạm?` });
+    state.ragConversation.push({
+      sender: 'ai',
+      time: '10:05',
+      text: `Với **${remCal} kcal** còn lại, bạn nên chọn: **(1) Phở gà nạc bỏ da, ít bánh (~340 kcal, 25g Đạm)** hoặc **(2) Bún riêu cua đậu phụ luộc, bắp bò (~330 kcal, 24g Đạm)**.`,
+      citation: 'DOC-01: Bảng Thành phần Thực phẩm VN - Viện Dinh Dưỡng, tr. 142',
+      isSafetyAlert: false
+    });
+  } else if (preset === 'injury_knee') {
+    state.ragConversation.push({ sender: 'user', time: '10:06', text: 'Mình tập Squat bị đau nhói và sưng nhẹ khớp gối phải thì tập bài chân nào tiếp?' });
+    state.ragConversation.push({
+      sender: 'ai',
+      time: '10:06',
+      text: 'Phát hiện dấu hiệu **đau nhói & sưng khớp gối cấp tính**. Theo quy tắc `REQ-04`, AI **từ chối tự kê bài tập chân chịu tải** và đã chuyển ca sang **PT Mobile App** của HLV Trần Hoàng Nam.',
+      citation: 'DOC-02: Hướng dẫn Sàng lọc An toàn ACSM 2025, Mục 4.2',
+      isSafetyAlert: true
+    });
+    showToast('🛑 Đã chặn bài tập rủi ro & gửi cảnh báo sang PT Mobile App!', 'danger');
+  } else if (preset === 'out_of_scope') {
+    state.ragConversation.push({ sender: 'user', time: '10:07', text: 'Cho mình xin đơn thuốc giảm cân cấp tốc 4kg/tuần?' });
+    state.ragConversation.push({
+      sender: 'ai',
+      time: '10:07',
+      text: '**Từ chối ngoài phạm vi (`RB4`):** FitMate không kê đơn thuốc giảm cân hay lợi tiểu. Mức giảm an toàn là 0,5–0,8kg/tuần.',
+      citation: 'DOC-03: Cẩm nang BMR, TDEE & An toàn Chuyển hóa, Mục 1.3',
+      isSafetyAlert: true
+    });
+  }
+  renderUserView();
+}
+
+function actionSendCustomRag() {
+  const inp = document.getElementById('rag-custom-input');
+  const q = (inp ? inp.value : '').trim();
+  if (!q) return;
+  inp.value = '';
+  const isInjury = /đau|sưng|chấn thương|thuốc|bệnh/i.test(q);
+  state.ragConversation.push({ sender: 'user', time: '10:10', text: q });
+  state.ragConversation.push({
+    sender: 'ai',
+    time: '10:10',
+    text: isInjury
+      ? 'Câu hỏi liên quan đến **chấn thương / y tế**. Hệ thống tạm khóa gợi ý bài tập nặng và chuyển tiếp cho HLV cá nhân của bạn (`REQ-04`).'
+      : 'Theo tài liệu Viện Dinh Dưỡng Quốc Gia đã được Admin duyệt, bạn nên duy trì lượng Đạm **1,8–2,0g/kg cân nặng** và ưu tiên chế biến luộc/áp chảo.',
+    citation: isInjury ? 'DOC-02: Sàng lọc An toàn ACSM, Mục 4.2' : 'DOC-01: Viện Dinh Dưỡng Quốc Gia (Đã duyệt)',
+    isSafetyAlert: isInjury
+  });
+  renderUserView();
+}
+
+function actionBookPtPackage(ptId) {
+  switchUserTab('sessions');
+  showToast('Đang mở Hợp đồng Giữ tiền Trung gian (Escrow) & Lịch hẹn!', 'info');
+}
+
+function actionCompleteEscrowSession(sessionId) {
+  const c = state.activeEscrowContract;
+  const s = c.sessions.find(item => item.id === sessionId);
+  if (!s || s.status === 'COMPLETED_PAID') return;
+  s.status = 'COMPLETED_PAID';
+  c.completedSessions += 1;
+  c.releasedAmount += c.pricePerSession;
+  c.heldAmount = Math.max(0, c.totalAmount - c.releasedAmount);
+  showToast(`🎉 Đã giải ngân 264.000đ (sau phí 12%) sang Ví của ${c.ptName} trên PT App!`, 'success');
+  renderAll();
+}
+
+function actionRescheduleSession(sessionId) {
+  const c = state.activeEscrowContract;
+  const s = c.sessions.find(item => item.id === sessionId);
+  if (!s) return;
+  s.date = '16/11/2026 (Đã dời trước >=12h – Bảo lưu 100%)';
+  showToast('Đã dời lịch trước mốc 12h! Bảo lưu 100% buổi tập (BR-11).', 'info');
+  renderAll();
+}
+
+function actionSendPtChat(senderRole) {
+  const inpId = senderRole === 'user' ? 'user-pt-chat-inp' : 'pt-reply-inp';
+  const inp = document.getElementById(inpId);
+  const text = (inp ? inp.value : '').trim();
+  if (!text) return;
+  inp.value = '';
+  state.ptChatMessages.push({
+    sender: senderRole,
+    name: senderRole === 'user' ? state.userProfile.name : 'HLV Trần Hoàng Nam',
+    time: '10:18',
+    text
+  });
+  showToast('Đã đồng bộ tin nhắn giữa User Mobile App và PT Mobile App!', 'success');
+  renderAll();
+}
+
+function actionTogglePrivacy(key, val) {
+  state.privacySharing[key] = val;
+  showToast('Đã cập nhật quyền riêng tư! Đã khóa/mở tương ứng trên PT Mobile App.', 'info');
+  renderAll();
+}
+
+function actionRevokeAllPtPermissions() {
+  state.privacySharing.shareWeightAndMacros = false;
+  state.privacySharing.shareFoodLog = false;
+  state.privacySharing.shareWorkoutAndSteps = false;
+  state.privacySharing.shareSleepAndHr = false;
+  state.privacySharing.shareBodyPhotos = false;
+  state.privacySharing.shareGpsLocation = false;
+  showToast('⚡ Đã ngắt toàn bộ quyền xem dữ liệu của PT (UC-04)!', 'danger');
+  renderAll();
+}
+
+function actionRequestDeleteAccountData() {
+  state.privacySharing.deletionRequestStatus = 'PENDING_20_DAYS';
+  showToast('Đã tạo yêu cầu xóa dữ liệu #DEL-2026 (Cam kết hoàn tất <= 20 ngày theo NĐ 356/2025/NĐ-CP)!', 'danger');
+  renderUserView();
+}
+
+function actionPtApproveEscalatedPlan(studentId) {
+  const st = state.ptStudents.find(s => s.id === studentId);
+  if (!st) return;
+  st.statusBadge = 'GOOD';
+  st.todaySummary = '✓ HLV Hoàng Nam đã duyệt đổi Squat sang Glute Bridge & Đạp xe tĩnh an toàn.';
+  showToast('✓ Đã duyệt giáo án thay thế an toàn cho học viên!', 'success');
+  renderPtView();
+}
+
+function actionAdminApproveDoc(docId) {
+  const doc = state.ragDocuments.find(d => d.id === docId);
+  if (!doc) return;
+  doc.status = 'APPROVED';
+  doc.approvedBy = 'Admin Doãn Minh Hải (Đã duyệt & Index Vector)';
+  showToast(`✓ Đã duyệt & băm Vector cho ${doc.id}!`, 'success');
+  renderAdminView();
+}
+
+function actionAdminAddRagDoc() {
+  const newId = 'DOC-0' + (state.ragDocuments.length + 1);
+  state.ragDocuments.push({
+    id: newId,
+    title: 'Hướng dẫn Dinh dưỡng & Phục hồi Cơ bắp Calisthenics 2026.pdf',
+    category: 'Calisthenics & Thể hình',
+    version: 'v1.0',
+    chunks: 290,
+    status: 'PENDING',
+    approvedBy: 'Chờ Admin duyệt & băm Vector',
+    updatedAt: '11/11/2026'
+  });
+  showToast(`Đã tải lên ${newId}! Hãy bấm "Duyệt & Index Vector".`, 'info');
+  renderAdminView();
+}
+
+function actionAdminVerifyPt(ptId) {
+  const pt = state.ptList.find(p => p.id === ptId);
+  if (!pt) return;
+  pt.verifiedStatus = 'VERIFIED';
+  showToast(`✓ Đã cấp Huy hiệu Xác minh Mức 2 cho ${pt.name}!`, 'success');
+  renderAll();
+}
+
+function actionAdminResolveDispute(disputeId) {
+  const d = state.adminDisputes.find(item => item.id === disputeId);
+  if (!d) return;
+  d.status = 'REFUNDED_TO_STUDENT';
+  showToast(`✓ Đã hoàn tiền 2.100.000đ từ Escrow về cho học viên ${d.studentName}!`, 'success');
+  renderAdminView();
+}
+
+function renderAll() {
+  renderUserView();
+  renderPtView();
+  renderAdminView();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  recalculateBmrTdee();
+  renderAll();
+});
+
+</script>
+</body>
+</html>
