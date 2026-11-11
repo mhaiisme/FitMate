@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>FitMate (Khỏe Cùng Bạn) – User Mobile App · PT Mobile App · Admin Web</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Responsive Mobile Shell:
+       - On small screens (< 640px): takes 100% viewport width & height like a real native app
+       - On tablet/desktop (>= 640px): renders inside a sleek 412x840 mobile device bezel */
+    @media (min-width: 640px) {
+      .mobile-device-shell {
+        width: 412px;
+        height: 830px;
+        border-radius: 44px;
+        border: 10px solid #1e293b;
+        box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.35);
+      }
+    }
+    @media (max-width: 639px) {
+      .mobile-device-shell {
+        width: 100%;
+        min-height: calc(100vh - 64px);
+        border-radius: 0px;
+        border: none;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 antialiased min-h-screen flex flex-col">
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast-container" class="fixed top-16 right-4 z-50 flex flex-col gap-2 max-w-xs sm:max-w-sm pointer-events-none"></div>
+
+  <!-- TOP SYSTEM SWITCHER BAR (Responsive across Mobile & Desktop) -->
+  <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-md">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2">
+      
+      <!-- Brand -->
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-emerald-500 text-slate-950 font-black text-sm flex items-center justify-center shrink-0">
+          FM
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-sm sm:text-base tracking-tight">FitMate (Khỏe Cùng Bạn)</span>
+            <span class="hidden md:inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              Bảng 5.6: 2 Mobile Apps + 1 Admin Web
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 Platform Switcher Buttons -->
+      <div class="flex items-center gap-1 bg-slate-800 p-1 rounded-xl border border-slate-700 w-full sm:w-auto justify-between sm:justify-start">
+        <button id="role-btn-user" onclick="switchRole('user')" class="flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950 shadow transition flex items-center justify-center gap-1.5">
+          <span>📱 User App</span>
+          <span class="hidden md:inline text-xs opacity-80">(Mobile)</span>
+        </button>
+        <button id="role-btn-pt" onclick="switchRole('pt')" class="flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition flex items-center justify-center gap-1.5">
+          <span>📲 PT App</span>
+          <span class="hidden md:inline text-xs opacity-75">(Mobile)</span>
+        </button>
+        <button id="role-btn-admin" onclick="switchRole('admin')" class="flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition flex items-center justify-center gap-1.5">
+          <span>💻 Admin Web</span>
+          <span class="hidden md:inline text-xs opacity-75">(Web Portal)</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- PHÂN HỆ 1: USER APP (NATIVE MOBILE APP - iOS / ANDROID)               -->
+  <!-- ===================================================================== -->
+  <main id="role-view-user" class="flex-1 max-w-7xl w-full mx-auto sm:px-6 sm:py-6 flex flex-col lg:flex-row items-center lg:items-start justify-center gap-6">
+    
+    <!-- CENTER: MOBILE PHONE SHELL FOR USER APP -->
+    <div class="mobile-device-shell bg-white flex flex-col justify-between overflow-hidden relative shrink-0">
+      
+      <!-- iOS / Android Status Bar + Dynamic Top App Bar -->
+      <div class="bg-white border-b border-slate-100 shrink-0">
+        <!-- OS Status bar -->
+        <div class="px-5 pt-2 pb-1 flex items-center justify-between text-xs font-bold text-slate-700">
+          <span id="user-os-clock">09:41</span>
+          <div class="hidden sm:block w-20 h-4 bg-slate-900 rounded-full"></div>
+          <div class="flex items-center gap-1.5 text-xs">
+            <button onclick="actionSwitchMobileOs()" id="user-os-badge" class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-bold hover:bg-slate-200" title="Bấm để đổi iOS HealthKit / Android Health Connect">
+              iOS · HealthKit
+            </button>
+            <span>📶</span>
+            <span>🔋</span>
+          </div>
+        </div>
+
+        <!-- App Header with Secondary Screen Pills (Profile, Plan, Privacy) -->
+        <div class="px-4 py-2 flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <button onclick="switchUserTab('onboarding')" class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center border border-emerald-300" title="Hồ sơ & Sàng lọc PAR-Q+">
+              MA
+            </button>
+            <div>
+              <p class="text-xs font-extrabold text-slate-900 leading-tight" id="user-app-header-title">Tổng quan Hôm nay</p>
+              <p class="text-xs text-emerald-600 font-semibold leading-tight" id="user-app-header-sub">🔥 14 ngày Streak · Giảm cân</p>
+            </div>
+          </div>
+
+          <!-- Top-right quick actions inside mobile app -->
+          <div class="flex items-center gap-1">
+            <button onclick="switchUserTab('onboarding')" id="top-pill-onboarding" class="px-2 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-emerald-50">
+              🩺 Hồ sơ
+            </button>
+            <button onclick="switchUserTab('privacy')" id="top-pill-privacy" class="px-2 py-1 rounded-lg text-xs font-semibold bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100">
+              🔒 Quyền
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCROLLABLE MOBILE SCREEN VIEWPORT -->
+      <div id="user-mobile-viewport" class="flex-1 overflow-y-auto no-scrollbar p-3.5 space-y-3.5 bg-slate-50">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <!-- NATIVE MOBILE BOTTOM TAB BAR (5 Primary Tabs) -->
+      <nav class="bg-white border-t border-slate-200 px-1 py-1.5 grid grid-cols-5 gap-0.5 shrink-0 select-none">
+        <button onclick="switchUserTab('dashboard')" id="u-bnav-dashboard" class="flex flex-col items-center justify-center py-1 rounded-xl text-emerald-600 font-bold">
+          <span class="text-base leading-none">🏠</span>
+          <span class="text-xs mt-1">Hôm nay</span>
+        </button>
+        <button onclick="switchUserTab('nutrition')" id="u-bnav-nutrition" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 font-medium">
+          <span class="text-base leading-none">🍜</span>
+          <span class="text-xs mt-1">Bữa ăn</span>
+        </button>
+        <button onclick="switchUserTab('plan')" id="u-bnav-plan" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 font-medium">
+          <span class="text-base leading-none">📅</span>
+          <span class="text-xs mt-1">Kế hoạch</span>
+        </button>
+        <button onclick="switchUserTab('rag')" id="u-bnav-rag" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 font-medium">
+          <span class="text-base leading-none">🤖</span>
+          <span class="text-xs mt-1">AI RAG</span>
+        </button>
+        <button onclick="switchUserTab('marketplace')" id="u-bnav-marketplace" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 font-medium">
+          <span class="text-base leading-none">🏋️</span>
+          <span class="text-xs mt-1">Thuê PT</span>
+        </button>
+      </nav>
+
+    </div>
+
+    <!-- SIDEBAR ON DESKTOP: QUICK JUMP TO ALL 8 FLOWS & SRS TRACEABILITY -->
+    <aside class="w-full lg:w-96 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-4 shrink-0">
+      <div class="border-b border-slate-200 pb-3">
+        <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">Bảng Điều khiển Kiểm thử Luồng Mobile</span>
+        <h3 class="text-sm font-bold text-slate-900 mt-0.5">Chuyển nhanh 8 màn hình của User App</h3>
+        <p class="text-xs text-slate-500 mt-0.5">Trên điện thoại thật chỉ hiện khung Mobile. Bảng phụ này giúp nhóm mở nhanh từng Use Case khi thuyết trình với giảng viên.</p>
+      </div>
+      <div id="user-flow-jumper" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-1.5"></div>
+      <div id="user-srs-context-box" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1.5"></div>
+    </aside>
+
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- PHÂN HỆ 2: PT APP (NATIVE MOBILE APP CHO HUẤN LUYỆN VIÊN FREELANCER)  -->
+  <!-- ===================================================================== -->
+  <main id="role-view-pt" class="hidden flex-1 max-w-7xl w-full mx-auto sm:px-6 sm:py-6 flex flex-col lg:flex-row items-center lg:items-start justify-center gap-6">
+    
+    <!-- CENTER: MOBILE PHONE SHELL FOR PT APP -->
+    <div class="mobile-device-shell bg-white flex flex-col justify-between overflow-hidden relative shrink-0">
+      
+      <!-- PT Mobile Status Bar & Top App Bar -->
+      <div class="bg-sky-950 text-white shrink-0">
+        <div class="px-5 pt-2 pb-1 flex items-center justify-between text-xs font-bold text-sky-200">
+          <span>09:41</span>
+          <div class="hidden sm:block w-20 h-4 bg-black rounded-full"></div>
+          <span>5G · 🔋 94%</span>
+        </div>
+        <div class="px-4 py-2.5 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-full bg-sky-500 text-white font-extrabold text-xs flex items-center justify-center">
+              HN
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <p class="text-xs font-extrabold leading-tight">HLV Trần Hoàng Nam</p>
+                <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-xs font-bold">✓ Đã xác minh</span>
+              </div>
+              <p class="text-xs text-sky-300 leading-tight" id="pt-app-header-sub">FitMate PT App · 12 Học viên đang kèm</p>
+            </div>
+          </div>
+          <button onclick="switchPtTab('profile')" class="px-2 py-1 rounded-lg bg-sky-900 border border-sky-700 text-xs font-semibold text-sky-100">
+            🎓 Hồ sơ
+          </button>
+        </div>
+      </div>
+
+      <!-- SCROLLABLE PT MOBILE VIEWPORT -->
+      <div id="pt-mobile-viewport" class="flex-1 overflow-y-auto no-scrollbar p-3.5 space-y-3.5 bg-slate-50">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <!-- NATIVE MOBILE BOTTOM TAB BAR FOR PT APP (5 Tabs) -->
+      <nav class="bg-white border-t border-slate-200 px-1 py-1.5 grid grid-cols-5 gap-0.5 shrink-0 select-none">
+        <button onclick="switchPtTab('students')" id="pt-bnav-students" class="flex flex-col items-center justify-center py-1 rounded-xl text-sky-600 font-bold">
+          <span class="text-base leading-none">👥</span>
+          <span class="text-xs mt-1">Học viên</span>
+        </button>
+        <button onclick="switchPtTab('schedule')" id="pt-bnav-schedule" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 font-medium">
+          <span class="text-base leading-none">📅</span>
+          <span class="text-xs mt-1">Lịch hẹn</span>
+        </button>
+        <button onclick="switchPtTab('chat')" id="pt-bnav-chat" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 font-medium">
+          <span class="text-base leading-none">💬</span>
+          <span class="text-xs mt-1">Chat &amp; AI</span>
+        </button>
+        <button onclick="switchPtTab('wallet')" id="pt-bnav-wallet" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 font-medium">
+          <span class="text-base leading-none">💰</span>
+          <span class="text-xs mt-1">Ví Escrow</span>
+        </button>
+        <button onclick="switchPtTab('profile')" id="pt-bnav-profile" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 font-medium">
+          <span class="text-base leading-none">🎓</span>
+          <span class="text-xs mt-1">Gói tập</span>
+        </button>
+      </nav>
+
+    </div>
+
+    <!-- SIDEBAR ON DESKTOP: PT APP FLOW JUMPER & PAIN POINT TRACEABILITY -->
+    <aside class="w-full lg:w-96 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-4 shrink-0">
+      <div class="border-b border-slate-200 pb-3">
+        <span class="text-xs font-bold uppercase tracking-wider text-sky-600">Phân hệ 2 · PT Mobile App (Bảng 5.6)</span>
+        <h3 class="text-sm font-bold text-slate-900 mt-0.5">Giải quyết nỗi đau của PT Freelancer (PV-PT01)</h3>
+        <p class="text-xs text-slate-500 mt-0.5">Giảm &ge; 30% thời gian nhắc học viên gửi ảnh bữa ăn qua Zalo và tự động hóa thu phí giữ tiền theo buổi (BO-3, SC-5).</p>
+      </div>
+      <div id="pt-flow-jumper" class="grid grid-cols-2 gap-1.5"></div>
+      <div class="p-3.5 rounded-xl bg-sky-50 border border-sky-200 text-xs space-y-1.5 text-slate-700">
+        <p class="font-bold text-sky-900">🔗 Kiểm chứng liên thông thực tế:</p>
+        <p>• Khi Học viên ở <b>User App</b> tắt quyền chia sẻ <i>Nhật ký bữa ăn</i> hoặc <i>Ảnh body</i>, màn hình <b>Học viên</b> của PT App sẽ khóa ngay dữ liệu đó.</p>
+        <p>• Khi Học viên bấm hoàn thành buổi tập, số dư trong tab <b>Ví Escrow</b> của PT App tự động tăng thêm <b>264.000đ</b> (đã trừ 12% hoa hồng).</p>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- PHÂN HỆ 3: ADMIN WEB (RESPONSIVE DESKTOP & MOBILE WEB PORTAL)         -->
+  <!-- ===================================================================== -->
+  <main id="role-view-admin" class="hidden flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 py-5">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      
+      <!-- Admin Web Left Sidebar (Responsive: horizontal scrollable pills on mobile, vertical sidebar on lg+) -->
+      <aside class="lg:col-span-3 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+        <div class="border-b border-slate-200 pb-2.5 flex items-center justify-between">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Phân hệ 3 · Admin Web</span>
+            <h2 class="text-sm font-bold text-slate-900 mt-0.5">Cổng Quản trị Vận hành</h2>
+          </div>
+          <span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 text-xs font-bold">FE-9 · REQ-15</span>
+        </div>
+
+        <nav id="admin-sidebar-nav" class="flex lg:flex-col gap-1.5 overflow-x-auto no-scrollbar pb-1 lg:pb-0"></nav>
+
+        <div class="hidden lg:block p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-1">
+          <p class="font-bold text-slate-800">👤 Quản trị viên trực:</p>
+          <p>Doãn Minh Hải (MSSV: 24021454)</p>
+          <p class="text-emerald-700 font-semibold">• 100% câu trả lời RAG có trích nguồn</p>
+          <p class="text-indigo-700 font-semibold">• Duyệt PT 2 mức (XĐ7)</p>
+        </div>
+      </aside>
+
+      <!-- Admin Web Main Dashboard Content -->
+      <div id="admin-main-content" class="lg:col-span-9 space-y-5"></div>
+
+    </div>
+  </main>
+
+  <!-- SCRIPTS -->
+  <script src="js/mock_data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
